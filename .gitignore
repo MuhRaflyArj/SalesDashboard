@@ -1,0 +1,9 @@
+# Ignore Excel files
+*.xls
+*.xlsx
+*.xlsm
+
+# Ignore Python cache directories
+__pycache__/
+*.pyc
+*.pyo

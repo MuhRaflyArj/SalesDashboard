@@ -1,0 +1,6 @@
+[theme]
+base="light"
+font="sans serif"
+
+[layout]
+layout = true
