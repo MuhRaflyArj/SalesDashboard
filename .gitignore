@@ -1,3 +1,49 @@
+# Python cache files
+__pycache__/
+*.pyc
+*.pyo
+
+# Virtual environment directories
+env/
+venv/
+ENV/
+.VENV/
+
+# Jupyter Notebook checkpoints (if used)
+.ipynb_checkpoints/
+
+# Python egg files
+*.egg
+*.egg-info/
+dist/
+build/
+
+# Log files
+*.log
+
+# Streamlit's config and history files
+.streamlit/
+
+# Coverage reports
+htmlcov/
+coverage/
+
+# Testing files
+.cache/
+.tox/
+.nox/
+pytest_cache/
+
+# Ignore macOS Finder files
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Thumbnails and metadata files
+._*
+.Spotlight-V100
+.Trashes
+
 # Ignore Excel files
 *.xls
 *.xlsx
