@@ -1,16 +1,20 @@
 import streamlit as st
 
 def upload_popup() :
+    # Membuat tab untuk upload data dan petunjuk
     tab1, tab2 = st.tabs(["Upload Data", "Petunjuk"])
 
+    # Tab untuk uplaod data
     with tab1 :
         st.write("### Upload Excel Sales")
 
+        # Radio Button untuk memilih jenis data excel yang diupload
         data_type = st.radio("Pilih Jenis Data", ("Data LPG", "Data Fuel"))
             
-        # Create the file uploader inside the popup
+        # Tampilan untuk upload data (hanya bisa upload excel max 200mb)
         uploaded_file = st.file_uploader("Pastikan nama sheet adalah `target`", type="xlsx")
     
+    # Tab untuk petunjuk upload
     with tab2:
         st.markdown("""
         ### Penamaan Sheet
@@ -73,4 +77,5 @@ def upload_popup() :
         - Net Value
         """)
 
+    # Return jenis data (LPG / Fuel) dan file yang diupload
     return data_type, uploaded_file

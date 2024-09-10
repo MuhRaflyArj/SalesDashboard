@@ -5,10 +5,10 @@ import view.body_lpg as body_lpg
 import view.dropdown as dropdown
 import view.graph as graph
 
-# COnfigurasi ukuran halaman
+# Configurasi ukuran halaman
 st.set_page_config(layout="wide")
 
-# Main title
+# Judul utama
 st.title("Dashboard Penjualan SAM Bandung")
 
 # Dropdown untuk upload file dan 
