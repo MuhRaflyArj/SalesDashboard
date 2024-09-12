@@ -26,7 +26,7 @@ if uploaded_file != None :
         # Pilihan jenis visualisasi
         header_option = st.selectbox(
             "Pilih Visualisasi",
-            ["Per-SPBU", "Per-Region", "Keseluruhan"]
+            ["Per-SPBU", "Per-Region", "Keseluruhan", "Data Penjualan Mingguan"]
         )
 
         # Menampilkan tampilan sesuai jenis visualisasi
@@ -36,7 +36,8 @@ if uploaded_file != None :
             body_fuel.body_region(df)
         elif header_option == "Keseluruhan" :
             body_fuel.body_keseluruhan(df)
-
+        elif header_option == "Data Penjualan Mingguan" :
+            body_fuel.body_mingguan(df)
     # Tampilan untuk dashboard LPG
     elif data_type == "Data LPG" :
         # Baca data excel yang diupload

@@ -335,3 +335,6 @@ def body_keseluruhan(df) :
             with col3_2_2 :
                 # Menulis total penjualan dari produk tertentu
                 st.write("{:,.0f}".format(round(value))) 
+
+def body_mingguan(df) :
+    header_data = header.header_mingguan()

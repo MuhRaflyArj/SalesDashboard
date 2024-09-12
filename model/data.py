@@ -5,8 +5,33 @@ import streamlit as st
 @st.cache_data
 def read_data_fuel(uploaded_file) :
     df = pd.read_excel(uploaded_file, sheet_name="target", skiprows=4)
+    
     df.columns = list(df.columns.values[:-9]) + ["Material Code", "Material Name", "Billing Quantity", "Volume", "Harga Faktur", "Hasil Penjualan", "Margin", "PBBKB", "Net Value"]
     df["Material Name"] = df["Material Name"].str.replace(", ", "",).str.replace(",", "",).str.replace("BULK", "",)
+    
+    df[["Billing Quantity", "Volume", "Harga Faktur", "Hasil Penjualan", "Margin", "PBBKB", "Net Value"]] = df[["Billing Quantity", "Volume", "Harga Faktur", "Hasil Penjualan", "Margin", "PBBKB", "Net Value"]].fillna(0)
+    df = df.dropna(subset=[
+        "Calendar Day",
+        "Region",
+        "Sales District",
+        "No Lambung",
+        "Material Name",
+        "Material Code"
+    ])
+
+    fuel_names = {
+        'PERTALITE': 'PERTALITE', 
+        'PERTAMAX': 'PERTAMAX', 
+        'PERTAMAX TURBO': 'PERTAMAX TURBO', 
+        'PERTAMAX GREEN': 'PERTAMAX GREEN', 
+        'BIOSOLAR B30': 'BIOSOLAR', 
+        'BIOSOLAR B35': 'BIOSOLAR', 
+        'DEXLITE': 'DEXLITE', 
+        'DEX': 'PERTAMINA DEX 50 PPM'
+    }
+
+    df["Material Name"] = df["Material Name"].replace(fuel_names)
+    
     return df
 
 @st.cache_data

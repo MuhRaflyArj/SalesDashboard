@@ -271,3 +271,58 @@ def header_keseluruhan(list_product) :
 
     # Mengembalikan data yang dipilih
     return header_data
+
+def header_mingguan() :
+    header_data = {}
+
+    col1_1, col1_2 = st.columns([1, 3])
+
+    with col1_1 :
+        header_data["start date"] = st.date_input(
+            "Pilih Tanggal Awal",
+            value = date.today(),
+            min_value = date(2000, 1, 1),
+            max_value = date(2030, 12, 31)
+        )
+
+        header_data["end date"] = st.date_input(
+            "Pilih Tanggal Akhir",
+            value = date.today(),
+            min_value = date(2000, 1, 1),
+            max_value = date(2030, 12, 31)
+        )
+
+    with col1_2 :
+        header_data["selected fueltype"] = st.selectbox(
+            "Pilih Tipe BBM",
+            ["Bensin", "Solar"]
+        )
+
+        col1_1_1, col1_1_2 = st.columns([2,1])
+
+        with col1_1_1 :
+            if header_data["selected fueltype"] == "Bensin" :
+                header_data["selected product"] = st.multiselect(
+                    "Pilih Jenis BBM",
+                    ["Pertalite", "Pertamax", "Pertamax Green", "Pertamax Turbo"]
+                )
+            elif header_data["selected fueltype"] == "Solar" :
+                header_data["selected product"] = st.multiselect(
+                    "Pilih Jenis BBM",
+                    ["Biosolar", "Dex", "Dexlite"]
+                )
+
+        with col1_1_2 :
+            header_data["selected value"] = st.selectbox(
+                "Pilih Nilai yang Ditinjau",
+                ["Volume",
+                 "Billing Quantity", 
+                 "Harga Faktur", 
+                 "Hasil Penjualan", 
+                 "Margin", 
+                 "PBBKB", 
+                 "Net Value"]
+            )
+
+    return header_data
+        
