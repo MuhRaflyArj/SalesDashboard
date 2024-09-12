@@ -13,7 +13,7 @@ st.title("Dashboard Penjualan SAM Bandung")
 
 # Dropdown untuk upload file dan 
 with st.expander("Upload Data Sales") :
-    data_type, uploaded_file = dropdown.upload_popup()
+    data_type, uploaded_file = dropdown.upload_dropdown()
 
 # Tampilan body muncul saat sudah terdapat file yang diupload
 if uploaded_file != None :

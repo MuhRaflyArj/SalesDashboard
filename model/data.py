@@ -278,5 +278,3 @@ def get_sum_keseluruhan(df, products, value, start_date, end_date) :
         keseluruhan_sales[product] = total
 
     return keseluruhan_sales
-
-

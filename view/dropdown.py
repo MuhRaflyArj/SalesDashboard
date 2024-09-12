@@ -1,6 +1,6 @@
 import streamlit as st
 
-def upload_popup() :
+def upload_dropdown() :
     # Membuat tab untuk upload data dan petunjuk
     tab1, tab2 = st.tabs(["Upload Data", "Petunjuk"])
 

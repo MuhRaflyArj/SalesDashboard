@@ -84,7 +84,7 @@ def body_spbu(df) :
     # ========================= #
     # 3 Kolom pada baris kedua untuk menampung rasio penjualan produk perbandingan PSO dan standar, 
     # dan perbandingan setiap produk
-    col2_1, col2_2, col2_3 = st.columns([2,3,4])
+    col2_1, col2_2, col2_3 = st.columns([3,2,4])
 
     # Isi kolom untuk rasio penjualan
     with col2_1 :
@@ -334,6 +334,4 @@ def body_keseluruhan(df) :
                 st.write(product) # Menulis nama setiap produk
             with col3_2_2 :
                 # Menulis total penjualan dari produk tertentu
-                st.write("{:,.0f}".format(round(value)))
-        
-    
+                st.write("{:,.0f}".format(round(value))) 
