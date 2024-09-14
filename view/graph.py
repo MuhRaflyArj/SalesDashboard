@@ -1,5 +1,113 @@
 import plotly.graph_objects as go
 import plotly.express as px
+import pandas as pd
+
+def barchart_proporsi(df, header_data):
+    # Pivot dataframe untuk mendapatkan 'Material Name' sebagai kolom
+    df_pivot = df.pivot_table(
+        index='Calendar Day',
+        columns='Material Name',
+        values=header_data["selected value"],
+        aggfunc='sum'
+    ).fillna(0)
+
+    # Mengambil labels (Calendar Day) dan materials (Material Name)
+    labels = df_pivot.index.tolist()
+    materials = df_pivot.columns.tolist()
+
+    # Memproses labels sesuai dengan frekuensi agregasi
+    formatted_labels = []
+    if header_data["aggregate"] == 'W':
+        # Untuk data mingguan
+        for date in labels:
+            day = date.strftime('%d')
+            month_year = date.strftime('%b-%Y')
+            formatted_label = f"{day} {month_year}"
+            formatted_labels.append(formatted_label)
+    elif header_data["aggregate"] == 'M':
+        # Untuk data bulanan
+        for date in labels:
+            formatted_label = date.strftime('%b-%Y')
+            formatted_labels.append(formatted_label)
+    elif header_data["aggregate"] == 'Y':
+        # Untuk data tahunan
+        for date in labels:
+            formatted_label = date.strftime('%Y')
+            formatted_labels.append(formatted_label)
+    else:
+        # Format default jika frekuensi tidak dikenali
+        formatted_labels = labels
+
+    # Menghitung total volume per periode waktu
+    total_volumes = df_pivot.sum(axis=1)
+    max_total_volume = total_volumes.max()  # Mendapatkan nilai maksimum total volume
+
+    # Membuat bar untuk setiap kategori dalam stacked bar dengan proporsi %
+    traces = []
+    for material in materials:
+        volumes = df_pivot[material].tolist()
+        # Menghitung persentase kontribusi untuk setiap periode waktu
+        percentages = (df_pivot[material] / total_volumes * 100).tolist()
+        # Membuat label teks dengan persentase
+        text_labels = [f'{p:.1f}%' if p > 0 else '' for p in percentages]
+        # Menentukan posisi teks berdasarkan persentase
+        text_positions = ['inside' if p > 5 else 'outside' for p in percentages]
+        # Menentukan warna teks agar kontras dengan warna batang
+        text_colors = ['white' if p > 5 else 'black' for p in percentages]
+        traces.append(go.Bar(
+            name=material,
+            x=formatted_labels,
+            y=volumes,
+            text=text_labels,
+            textposition=text_positions,
+            textfont=dict(color=text_colors, size=16),
+            hovertemplate='<b>%{x}</b><br>%{customdata}<br>Volume: %{y}<br>Persentase: %{text}',
+            customdata=[material]*len(volumes)
+        ))
+
+    # Inisialisasi figure dengan menambahkan stacked barchart dari data yang disimpan
+    fig = go.Figure(data=traces)
+
+    # Menentukan judul plot berdasarkan frekuensi agregasi
+    if header_data["aggregate"] == 'W':
+        title = 'Penjualan Mingguan Gasoline'
+    elif header_data["aggregate"] == 'M':
+        title = 'Penjualan Bulanan Gasoline'
+    elif header_data["aggregate"] == 'Y':
+        title = 'Penjualan Tahunan Gasoline'
+    else:
+        title = 'Penjualan Gasoline'
+
+    # Menambahkan informasi pada plot
+    fig.update_layout(
+        title=title,  # Judul plot
+        barmode='stack',  # Membuat barchart menjadi stacked barchart
+        xaxis_title='Tanggal',  # Label x-axis
+        yaxis_title='Volume',  # Label y-axis
+        legend_title='Jenis Bensin',  # Judul legend
+        xaxis=dict(
+            tickmode='linear',
+            tickfont=dict(size=10),  # Menyesuaikan ukuran font agar label tidak tumpang tindih
+        ),
+        yaxis=dict(
+            title='Volume',
+            range=[0, 1.25 * max_total_volume]  # Menetapkan limit sumbu y hingga 125% dari nilai maksimum
+        ),
+        # Tinggi dari grafik
+        height=800,
+        # Posisi dan warna legend
+        legend=dict(
+            x=0.9,  # Posisi x dari legend
+            y=1.0,  # Posisi y dari legend
+            bgcolor="rgba(225, 225, 225, 0.5)",  # Warna background
+            bordercolor="Black",  # Warna border
+        ),
+        margin=dict(b=100),  # Menambahkan margin bawah untuk mencegah label x-axis terpotong
+    )
+
+    return fig  # Mengembalikan plot yang dibuat
+
+# ==================================================== #
 
 # Linechart untuk menampilkan tren penjualan pada suatu SPBU
 def sales_chart_spbu(df, products, value):

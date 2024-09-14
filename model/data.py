@@ -27,12 +27,38 @@ def read_data_fuel(uploaded_file) :
         'BIOSOLAR B30': 'BIOSOLAR', 
         'BIOSOLAR B35': 'BIOSOLAR', 
         'DEXLITE': 'DEXLITE', 
-        'DEX': 'PERTAMINA DEX 50 PPM'
+        'PERTAMINA DEX': 'PERTAMINA DEX 50 PPM'
     }
 
     df["Material Name"] = df["Material Name"].replace(fuel_names)
     
     return df
+
+def get_list_kota(df) :
+    return list(df["Sales District"].unique())
+
+def get_list_region(df) :
+    return list(df["Region"].unique())
+
+def get_proporsi_keseluruhan(df, header_data) :
+    data = df.loc[
+        (df["Material Name"].isin(header_data["selected bbm"])) &
+        (df["Calendar Day"] >= header_data["start date"]) &
+        (df["Calendar Day"] <= header_data["end date"])
+    ]
+
+    data = (
+        data.groupby(
+            [pd.Grouper(key="Calendar Day", freq=header_data["aggregate"]), 
+            "Material Name"]
+        )[header_data["selected value"]]
+        .sum()
+        .reset_index()
+    )
+
+    return data
+    
+# ==================================================== #
 
 @st.cache_data
 def read_data_lpg(uploaded_file) :
