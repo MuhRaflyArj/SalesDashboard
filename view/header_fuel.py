@@ -69,13 +69,13 @@ def header_keseluruhan(df) :
 
             header_data["selected value"] = st.selectbox(
                 "Pilih Nilai yang Ditinjau",
-                ["Volume",
-                 "Billing Quantity", 
-                 "Harga Faktur", 
-                 "Hasil Penjualan", 
-                 "Margin", 
-                 "PBBKB", 
-                 "Net Value"]
+                ["Volume (KL)",
+                 "Billing Quantity (KL)", 
+                 "Harga Faktur (Rp)", 
+                 "Hasil Penjualan (Rp)", 
+                 "Margin (Rp)", 
+                 "PBBKB (Rp)", 
+                 "Net Value (Rp)"]
             )
     
     return header_data
@@ -154,13 +154,13 @@ def header_region(df) :
         with col1_2_5 :
             header_data["selected value"] = st.selectbox(
                 "Pilih Nilai yang Ditinjau",
-                ["Volume",
-                 "Billing Quantity", 
-                 "Harga Faktur", 
-                 "Hasil Penjualan", 
-                 "Margin", 
-                 "PBBKB", 
-                 "Net Value"]
+                ["Volume (KL)",
+                 "Billing Quantity (KL)", 
+                 "Harga Faktur (Rp)", 
+                 "Hasil Penjualan (Rp)", 
+                 "Margin (Rp)", 
+                 "PBBKB (Rp)", 
+                 "Net Value (Rp)"]
             )
     
     return header_data
@@ -202,13 +202,13 @@ def header_kota(df) :
         with col1_2_1 :
             header_data["selected value"] = st.selectbox(
                 "Pilih Nilai yang Ditinjau",
-                ["Volume",
-                 "Billing Quantity", 
-                 "Harga Faktur", 
-                 "Hasil Penjualan", 
-                 "Margin", 
-                 "PBBKB", 
-                 "Net Value"]
+                ["Volume (KL)",
+                 "Billing Quantity (KL)", 
+                 "Harga Faktur (Rp)", 
+                 "Hasil Penjualan (Rp)", 
+                 "Margin (Rp)", 
+                 "PBBKB (Rp)", 
+                 "Net Value (Rp)"]
             )
 
         with col1_2_2 :
