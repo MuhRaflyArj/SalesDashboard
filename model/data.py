@@ -8,7 +8,7 @@ def read_data_fuel(uploaded_file) :
     
     df.columns = list(df.columns.values[:-9]) + ["Material Code", "Material Name", "Billing Quantity", "Volume", "Harga Faktur", "Hasil Penjualan", "Margin", "PBBKB", "Net Value"]
     df["Material Name"] = df["Material Name"].str.replace(", ", "",).str.replace(",", "",).str.replace("BULK", "",)
-    
+
     df[["Billing Quantity", "Volume", "Harga Faktur", "Hasil Penjualan", "Margin", "PBBKB", "Net Value"]] = df[["Billing Quantity", "Volume", "Harga Faktur", "Hasil Penjualan", "Margin", "PBBKB", "Net Value"]].fillna(0)
     df = df.dropna(subset=[
         "Calendar Day",
@@ -27,10 +27,12 @@ def read_data_fuel(uploaded_file) :
         'BIOSOLAR B30': 'BIOSOLAR', 
         'BIOSOLAR B35': 'BIOSOLAR', 
         'DEXLITE': 'DEXLITE', 
-        'PERTAMINA DEX': 'PERTAMINA DEX 50 PPM'
+        'PERTAMINA DEX 50 PPM': 'PERTAMINA DEX'
     }
 
     df["Material Name"] = df["Material Name"].replace(fuel_names)
+
+    df["Margin"] = abs(df["Margin"])
     
     return df
 
@@ -40,7 +42,7 @@ def get_list_kota(df) :
 def get_list_region(df) :
     return list(df["Region"].unique())
 
-def get_proporsi_keseluruhan(df, header_data) :
+def get_proporsi_produk_keseluruhan(df, header_data) :
     data = df.loc[
         (df["Material Name"].isin(header_data["selected bbm"])) &
         (df["Calendar Day"] >= header_data["start date"]) &
@@ -57,7 +59,59 @@ def get_proporsi_keseluruhan(df, header_data) :
     )
 
     return data
+
+def get_proporsi_sales_keseluruhan(df, header_data, start_date, end_date) :
+    data = df.loc[
+        (df["Material Name"].isin(header_data["selected bbm"])) &
+        (df["Calendar Day"] >= start_date) &
+        (df["Calendar Day"] <= end_date)
+    ][["Material Name", header_data["selected value"]]]
+
+    data = data.groupby(["Material Name"])
+
+    return data
     
+def get_total_pencapaian_keseluruhan(df, header_data) :
+    data = {}
+
+    for material in header_data["selected bbm"] :
+        data[material] = df.loc[
+            (df["Calendar Day"] >= header_data["start date"]) &
+            (df["Calendar Day"] <= header_data["end date"]) &
+            (df["Material Name"] == material)
+        ][header_data["selected value"]].sum()
+
+    return data
+
+def get_rata_rata_harian(df, header_data):
+    # Filter data berdasarkan material yang dipilih dan rentang tanggal
+    data = df.loc[
+        (df["Material Name"].isin(header_data["selected bbm"])) &
+        (df["Calendar Day"] >= header_data["start date"]) &
+        (df["Calendar Day"] <= header_data["end date"])
+    ]
+
+    # Agregasikan data per bulan
+    data_bulanan = (
+        data.groupby(
+            [pd.Grouper(key="Calendar Day", freq="ME"), "Material Name"]
+        )[header_data["selected value"]]
+        .sum()
+        .reset_index()
+    )
+
+    # Buat kolom baru yang menghitung jumlah hari dalam setiap bulan
+    data_bulanan["days_in_month"] = data_bulanan["Calendar Day"].apply(
+        lambda x: pd.date_range(start=x.replace(day=1), end=x).size
+    )
+
+    # Hitung rata-rata penjualan harian
+    data_bulanan["Rerata Harian"] = (
+        data_bulanan[header_data["selected value"]] / data_bulanan["days_in_month"]
+    )
+
+    return data_bulanan[["Calendar Day", "Material Name", "Rerata Harian"]]
+
 # ==================================================== #
 
 @st.cache_data

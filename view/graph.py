@@ -51,9 +51,9 @@ def barchart_proporsi(df, header_data):
         # Membuat label teks dengan persentase
         text_labels = [f'{p:.1f}%' if p > 0 else '' for p in percentages]
         # Menentukan posisi teks berdasarkan persentase
-        text_positions = ['inside' if p > 5 else 'outside' for p in percentages]
+        text_positions = ['outside' if p > 25 else 'outside' for p in percentages]
         # Menentukan warna teks agar kontras dengan warna batang
-        text_colors = ['white' if p > 5 else 'black' for p in percentages]
+        text_colors = ['white' if p > 25 else 'black' for p in percentages]
         traces.append(go.Bar(
             name=material,
             x=formatted_labels,
@@ -70,11 +70,11 @@ def barchart_proporsi(df, header_data):
 
     # Menentukan judul plot berdasarkan frekuensi agregasi
     if header_data["aggregate"] == 'W':
-        title = 'Penjualan Mingguan Gasoline'
+        title = f'Penjualan Mingguan {header_data["selected material"]} Berdasarkan Nilai {header_data["selected value"]}'
     elif header_data["aggregate"] == 'M':
-        title = 'Penjualan Bulanan Gasoline'
+        title = f'Penjualan Bulanan {header_data["selected material"]} Berdasarkan Nilai {header_data["selected value"]}'
     elif header_data["aggregate"] == 'Y':
-        title = 'Penjualan Tahunan Gasoline'
+        title = f'Penjualan Tahunan {header_data["selected material"]} Berdasarkan Nilai {header_data["selected value"]}'
     else:
         title = 'Penjualan Gasoline'
 
@@ -94,18 +94,72 @@ def barchart_proporsi(df, header_data):
             range=[0, 1.25 * max_total_volume]  # Menetapkan limit sumbu y hingga 125% dari nilai maksimum
         ),
         # Tinggi dari grafik
-        height=800,
+        height=600,
         # Posisi dan warna legend
         legend=dict(
             x=0.9,  # Posisi x dari legend
-            y=1.0,  # Posisi y dari legend
-            bgcolor="rgba(225, 225, 225, 0.5)",  # Warna background
+            y=0.0,  # Posisi y dari legend
+            bgcolor="rgba(255, 255, 255, 0.9)",  # Warna background
             bordercolor="Black",  # Warna border
         ),
         margin=dict(b=100),  # Menambahkan margin bawah untuk mencegah label x-axis terpotong
     )
 
     return fig  # Mengembalikan plot yang dibuat
+
+def piechart_proporsi(df, header_data):
+    labels = list(df.index)
+    values = list(df[header_data["selected value"]])
+
+    start_date = header_data["pie start"].strftime("%d-%b-%y")
+    end_date = header_data["pie end"].strftime("%d-%b-%y")
+
+    # Inisialisasi dan membuat piechart pada Plotly
+    fig = go.Figure()
+
+    # Plot piechart pada figure dengan hollow (donut)
+    fig.add_trace(go.Pie(
+        labels=labels, 
+        values=values, 
+        hole=0.6,  # Membuat piechart berongga di tengah
+        domain=dict(x=[0.1, 0.9], y=[0.5, 1])  # Mengatur domain agar piechart berada di tengah dan lebih besar
+    ))
+
+    # Menambahkan informasi pada plot
+    fig.update_layout(
+        title={
+            'text': f'Proporsi Sales {header_data["selected material"]}',
+            'y': 0.975,  # Posisi y judul
+            'x': 0.5,  # Posisi x judul (align tengah)
+            'xanchor': 'center',
+            'yanchor': 'top'
+        },
+        annotations=[dict(
+            text=f"{start_date} - {end_date}",
+            x=0.5,
+            y=0.5,
+            font_size=14,
+            showarrow=False,
+            xanchor='center',
+            yanchor='top'
+        )],
+        legend=dict(
+            x=0.5,  # Posisi x dari legend (align tengah)
+            y=0.75,  # Posisi y dari legend (align tengah)
+            xanchor='center',  # Anchor legend di tengah secara horizontal
+            yanchor='middle',  # Anchor legend di tengah secara vertikal
+            bgcolor="rgba(255, 255, 255, 1)",  # Warna background
+            bordercolor="Black",  # Warna border
+        ),
+        height=800,  # Menambah tinggi figure untuk memperbesar pie chart
+        width=800,   # Menambah lebar figure untuk memperbesar pie chart
+    )
+
+    return fig  # Mengembalikan plot yang dibuat
+
+
+
+
 
 # ==================================================== #
 
