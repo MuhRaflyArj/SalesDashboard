@@ -1,40 +1,14 @@
 import streamlit as st
 from datetime import date
 from pandas import to_datetime
+import model.data as data
 
-# Header jenis visualisasi data per-SH
-def header_sh(list_region, dict_sh, dict_product) :
-    # Dictionary untuk menyimpan pilihan yang dipilih user
+def header_keseluruhan(df) :
     header_data = {}
 
-    # ========================= #
-    # 2 Kolom pada baris pertama untuk pemilihan Kota dan Lambung
-    col1_1, col1_2 = st.columns([2, 1])
+    col1_1, col1_2 = st.columns([1, 4])
 
-    # Isi kolom untuk memilih region
     with col1_1 :
-        # Pilihan untuk memilih region
-        selected_region = st.selectbox(
-            "Pilih Kota/Kabupaten",
-            list_region # Daftar region yang didapatkan dari parameter
-        )
-
-    # Isi kolom untuk memilih SH
-    with col1_2 :
-        # Input untuk memilih SH
-        header_data["selected sh"] = st.selectbox(
-            "Pilih SH",
-            # Daftar SH sesuai dengan region yang dipilih
-            dict_sh[selected_region]
-        )
-
-    # ========================= #
-    # 2 Kolom pada baris pertama untuk pemilihan tanggal dan
-    # informasi lainnya
-    col2_1, col2_2 = st.columns([1,4])
-
-    # Isi kolom untuk pilihan tanggal awal dan akhir
-    with col2_1 :
         # Input tanggal awal
         header_data["start date"] = st.date_input(
             "Pilih Tanggal Awal",
@@ -43,7 +17,7 @@ def header_sh(list_region, dict_sh, dict_product) :
             max_value = date(2030, 12, 31), # Nilai maksimum yang dapat diinput
         )
 
-        # Mengubah tipe data dari pandas dataframe
+        # Mengubah tipe data ke pandas DateTime
         header_data["start date"] = to_datetime(header_data["start date"])
 
         # Input tanggal akhir
@@ -54,224 +28,193 @@ def header_sh(list_region, dict_sh, dict_product) :
             max_value = date(2030, 12, 31)
         )
 
-        # Mengubah tipe data dari pandas dataframe
+        # Mengubah tipe data ke pandas DateTime
         header_data["end date"] = to_datetime(header_data["end date"])
 
-    # Isi kolom untuk pilihan produk, nilai yang ditinjau
-    # dan agregasi data
-    with col2_2 :
-        # Input produk untuk divisualisasikan
-        header_data["selected product"] = st.multiselect(
-            "Pilih Produk",
-            # Hanya memilih produk yang terdapat pada lambung dipilih
-            dict_product[header_data["selected sh"]]
+    with col1_2 :
+        header_data["selected type"] = st.multiselect(
+            "Pilih Jenis Gas",
+            ["BG Can", "BULK", "LPG NPSO 50 KG", "LPG NPSO 12 KG", "LPG NPSO 5,5 KG", "LPG PSO 3 KG"]
         )
 
-        # 2 kolom di dalam kolom informasi lainnya untuk memilih nilai yang ditinjau
-        # dan agregasi data
-        col2_2_1, col2_2_2 = st.columns(2)
+        col1_2_1, col1_2_2 = st.columns(2)
 
-        # Isi untuk kolom pemilihan nilai yang ditinjau
-        with col2_2_1 :
+        with col1_2_1 :
             header_data["selected value"] = st.selectbox(
                 "Pilih Nilai yang Ditinjau",
-                # Daftar nilai yang ditinjau
-                ["Volume",
-                 "Billing Quantity", 
-                 "Harga Faktur", 
-                 "Hasil Penjualan", 
-                 "Margin", 
-                 "PBBKB", 
-                 "Net Value"]
+                ["Billing Quantity (MT)",
+                "Harga Faktur (Rp)",
+                "Hasil Penjualan (Rp)",
+                "Margin (Rp)",
+                "PBBKB (Rp)",
+                "Net Value (Rp)"]
             )
 
-        # Isi kolom untuk pemilihan agregasi data
-        with col2_2_2 :
-            # Pilihan untuk agregasi data
+        with col1_2_2 :
             header_data["aggregate"] = st.selectbox(
-                "Agreagasi Data",
-                # Pilihan agregasi data
-                ["Harian", "Mingguan", "Bulanan"]
+                "Pilih Agregasi Data",
+                ["Mingguan", "Bulanan", "Tahunan"]
             )
 
-            # Konversi agregasi data dapat dibaca oleh Pandas Grouper
             if header_data["aggregate"] == "Harian" :
                 header_data["aggregate"] = "D"
             elif header_data["aggregate"] == "Mingguan" :
                 header_data["aggregate"] = "W"
             elif header_data["aggregate"] == "Bulanan" :
                 header_data["aggregate"] = "M"
+            elif header_data["aggregate"] == "Tahunan" :
+                header_data["aggregate"] = "Y"
 
-    # Mengembalikan data yang dipilih
+    header_data["selected material"] = "LPG"
     return header_data
 
-# Header jenis visualisasi data per-region
-def header_region(list_region, dict_product) :
-    # Dictionary untuk menyimpan pilihan yang dipilih user
+def header_region(df) :
     header_data = {}
+    
+    list_region = data.get_list_region(df)
 
-    # ========================= #
-    # 2 Kolom pada baris pertama untuk pemilihan tanggal
-    # dan pemilihan informasi lainnya
     col1_1, col1_2 = st.columns([1,4])
 
-    # Isi kolom untuk pilihan tanggal awal dan akhir
     with col1_1 :
-        # Input tanggal awal
+         # Input tanggal awal
         header_data["start date"] = st.date_input(
             "Pilih Tanggal Awal",
-            value = date.today(), # Default value hari ini
-            min_value = date(2000, 1, 1), # Nilai minimun yang dapat diinput
-            max_value = date(2030, 12, 31) # Nilai maksimum yang dapat diinput
+            value=date.today(), # Default value hari ini
+            min_value = date(2000, 1, 1), # Nilai minimum yang dapat diinput
+            max_value = date(2030, 12, 31), # Nilai maksimum yang dapat diinput
         )
 
-        # Mengubah tipe data ke pandas dataframe
+        # Mengubah tipe data ke pandas DateTime
         header_data["start date"] = to_datetime(header_data["start date"])
 
         # Input tanggal akhir
         header_data["end date"] = st.date_input(
             "Pilih Tanggal Akhir",
-            value = date.today(), # Default value hari ini
-            min_value = date(2000, 1, 1), # Nilai minimum yang dapat diinput
-            max_value = date(2030, 12, 31) # Nilai maksimum yang dapat diinput
+            value=date.today(),
+            min_value = date(2000, 1, 1),
+            max_value = date(2030, 12, 31)
         )
 
-        # Mengubah tipe date ke pandas dataframe
+        # Mengubah tipe data ke pandas DateTime
         header_data["end date"] = to_datetime(header_data["end date"])
 
-    # Isi kolom untuk pilihan informasi lainnya
     with col1_2 :
-        # Input untuk memilih beberapa region
-        header_data["selected region"] = st.multiselect(
-            "Pilih Kota/Kabupaten",
-            list_region # Daftar region yang dipilih
-        )
 
-        # 3 Kolom untuk di dalam informasi lainnya untuk memilih produk, nilai
-        # dan jenis agregasi data
-        col1_2_1, col1_2_2, col1_2_3  = st.columns([2,1,1])
+        col1_2_1, col1_2_2 = st.columns([5,2])
 
-        # Isi kolom untuk memilih produk
         with col1_2_1 :
-            # Input untuk memilih beberapa produk
-            header_data["selected product"] = st.multiselect(
-                "Pilih Produk",
-                # Mengambil seluruh jenis produk yang terdapat pada data
-                set([j for i in dict_product.values() for j in i if isinstance(j , str)])
+            header_data["selected type"] = st.multiselect(
+                "Pilih Jenis Gas",
+                ["BG Can", "BULK", "LPG NPSO 50 KG", "LPG NPSO 12 KG", "LPG NPSO 5,5 KG", "LPG PSO 3 KG"]
             )
 
-        # Isi kolom untuk memilih nilai yang ditinjau
         with col1_2_2 :
-            # Input untuk memilih yang ditinjau
+            header_data["selected region"] = st.selectbox(
+                "Pilih Region",
+                list_region
+            )
+
+        col1_2_3, col1_2_4 = st.columns(2)
+
+        with col1_2_3 :
             header_data["selected value"] = st.selectbox(
                 "Pilih Nilai yang Ditinjau",
-                # Daftar nilai yang ditinjau
-                ["Volume",
-                 "Billing Quantity", 
-                 "Harga Faktur", 
-                 "Hasil Penjualan", 
-                 "Margin", 
-                 "PBBKB", 
-                 "Net Value"]
+                ["Billing Quantity (MT)",
+                "Harga Faktur (Rp)",
+                "Hasil Penjualan (Rp)",
+                "Margin (Rp)",
+                "PBBKB (Rp)",
+                "Net Value (Rp)"]
             )
 
-        # Isi kolom untuk pemilihan agregasi data
-        with col1_2_3 :
-            # Input agregasi data
+        with col1_2_4 :
             header_data["aggregate"] = st.selectbox(
-                "Aggregasi Data",
-                #  Pilihan agregasi data
-                ["Harian", "Mingguan", "Bulanan"]
+                "Pilih Agregasi Data",
+                ["Mingguan", "Bulanan", "Tahunan"]
             )
 
-            # Konversi agregasi data agar dapat dibaca oleh Pandas Grouper
             if header_data["aggregate"] == "Harian" :
                 header_data["aggregate"] = "D"
             elif header_data["aggregate"] == "Mingguan" :
                 header_data["aggregate"] = "W"
             elif header_data["aggregate"] == "Bulanan" :
                 header_data["aggregate"] = "M"
+            elif header_data["aggregate"] == "Tahunan" :
+                header_data["aggregate"] = "Y"
 
-    # Mengembalikan data yang dipilih
-    return header_data
+        header_data["selected material"] = "LPG"
+        return header_data
 
-# Header jenis visualisasi data keseluruhan
-def header_keseluruhan(list_product) :
-    # Dictionary untuk menyimpan pilihan yang dipilih user
+def header_kota(df) :
     header_data = {}
 
-    # ========================= #
-    # 2 Kolom pada baris pertama untuk pemilihan tanggal
-    # dan pemilihan informasi lainnya
-    col1_1, col1_2 = st.columns([1, 3])
+    list_kota = data.get_list_kota(df)
 
-    # Isi kolom untuk pilihan tanggal awal dan akhir
+    col1_1, col1_2 = st.columns([1, 4])
+
     with col1_1 :
         # Input tanggal awal
         header_data["start date"] = st.date_input(
             "Pilih Tanggal Awal",
-            value = date.today(), # Default value hari ini
+            value=date.today(), # Default value hari ini
             min_value = date(2000, 1, 1), # Nilai minimum yang dapat diinput
-            max_value = date(2030, 12, 31) # Nilai maksimum yang dapat diinput
+            max_value = date(2030, 12, 31), # Nilai maksimum yang dapat diinput
         )
 
-        # Mengubah tipe data ke pandas datetime
+        # Mengubah tipe data ke pandas DateTime
         header_data["start date"] = to_datetime(header_data["start date"])
 
         # Input tanggal akhir
         header_data["end date"] = st.date_input(
             "Pilih Tanggal Akhir",
-            value = date.today(), # Default value hari ini
-            min_value = date(2000, 1, 1), # Nilai minimum yang dapat diinput
-            max_value = date(2030, 12, 31) # Nilai maksimum yang dapat diinput
+            value=date.today(),
+            min_value = date(2000, 1, 1),
+            max_value = date(2030, 12, 31)
         )
 
-        # Menghubah tipe data ke pandas dataframe
+        # Mengubah tipe data ke pandas DateTime
         header_data["end date"] = to_datetime(header_data["end date"])
 
-    # Isi kolom untuk informasi lainnya
     with col1_2 :
-        # Input untuk memilih beberapa produk
-        header_data["selected product"] = st.multiselect(
-            "Pilih Produk",
-            list_product # Daftar produk yang dapat dipilih
-        )
+        col1_2_1, col1_2_2 = st.columns([5,2])
 
-        # 2 Kolom di dalam informasi lainnya untuk memilik nilai
-        # dan jenis agregasi data 
-        col1_2_1, col1_2_2 = st.columns([2,1])
-
-        # Isi kolom untuk memilih nilai yang ditinjau
         with col1_2_1 :
-            # Input untuk memilih nilai yang ditinjau
+            header_data["selected type"] = st.multiselect(
+                "Pilih Jenis Gas",
+                ["BG Can", "BULK", "LPG NPSO 50 KG", "LPG NPSO 12 KG", "LPG NPSO 5,5 KG", "LPG PSO 3 KG"]
+            )
+
+            header_data["selected kota"] = st.multiselect(
+                "Pilih Kabupaten/Kota",
+                list_kota
+            )
+
+        with col1_2_2 :
             header_data["selected value"] = st.selectbox(
                 "Pilih Nilai yang Ditinjau",
-                # Daftar nilai yang ditinjau
-                ["Volume",
-                 "Billing Quantity", 
-                 "Harga Faktur", 
-                 "Hasil Penjualan", 
-                 "Margin", 
-                 "PBBKB", 
-                 "Net Value"]
+                ["Billing Quantity (MT)",
+                "Harga Faktur (Rp)",
+                "Hasil Penjualan (Rp)",
+                "Margin (Rp)",
+                "PBBKB (Rp)",
+                "Net Value (Rp)"]
             )
 
-        # Isi kolom untuk pemilihan agregasi data
-        with col1_2_2 :
-            # Input agregasi data
             header_data["aggregate"] = st.selectbox(
-                "Aggregasi Data",
-                # Pilihan agregasi data
-                ["Harian", "Mingguan", "Bulanan"]
+                "Pilih Agregasi Data",
+                ["Mingguan", "Bulanan", "Tahunan"]
             )
 
-            # Konversi agregasi data agar dapat dibaca oleh Pandas Grouper
             if header_data["aggregate"] == "Harian" :
                 header_data["aggregate"] = "D"
             elif header_data["aggregate"] == "Mingguan" :
                 header_data["aggregate"] = "W"
             elif header_data["aggregate"] == "Bulanan" :
                 header_data["aggregate"] = "M"
+            elif header_data["aggregate"] == "Tahunan" :
+                header_data["aggregate"] = "Y"
 
-    # Mengembalikan data yang dipilih
+
+    header_data["selected material"] = "LPG"
     return header_data
+    

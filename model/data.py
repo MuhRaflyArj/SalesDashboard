@@ -44,7 +44,7 @@ def get_list_region(df) :
 
 def get_proporsi_produk_keseluruhan(df, header_data) :
     data = df.loc[
-        (df["Material Name"].isin(header_data["selected bbm"])) &
+        (df["Material Name"].isin(header_data["selected type"])) &
         (df["Calendar Day"] >= header_data["start date"]) &
         (df["Calendar Day"] <= header_data["end date"])
     ]
@@ -62,7 +62,7 @@ def get_proporsi_produk_keseluruhan(df, header_data) :
 
 def get_proporsi_produk_region(df, header_data) :
     data = df.loc[
-        (df["Material Name"].isin(header_data["selected bbm"])) &
+        (df["Material Name"].isin(header_data["selected type"])) &
         (df["Region"] == header_data["selected region"]) &
         (df["Calendar Day"] >= header_data["start date"]) &
         (df["Calendar Day"] <= header_data["end date"])
@@ -81,7 +81,7 @@ def get_proporsi_produk_region(df, header_data) :
 
 def get_proporsi_produk_kota(df, header_data) :
     data = df.loc[
-        (df["Material Name"].isin(header_data["selected bbm"])) &
+        (df["Material Name"].isin(header_data["selected type"])) &
         (df["Sales District"].isin(header_data["selected kota"])) &
         (df["Calendar Day"] >= header_data["start date"]) &
         (df["Calendar Day"] <= header_data["end date"])
@@ -100,7 +100,7 @@ def get_proporsi_produk_kota(df, header_data) :
 
 def get_proporsi_sales_keseluruhan(df, header_data) :
     data = df.loc[
-        (df["Material Name"].isin(header_data["selected bbm"])) &
+        (df["Material Name"].isin(header_data["selected type"])) &
         (df["Calendar Day"] >= header_data["pie start date"]) &
         (df["Calendar Day"] <= header_data["pie end date"])
     ][["Material Name", header_data["selected value"]]]
@@ -111,7 +111,7 @@ def get_proporsi_sales_keseluruhan(df, header_data) :
 
 def get_proporsi_sales_region(df, header_data) :
     data = df.loc[
-        (df["Material Name"].isin(header_data["selected bbm"])) &
+        (df["Material Name"].isin(header_data["selected type"])) &
         (df["Region"] == header_data["pie selected region"]) &
         (df["Calendar Day"] >= header_data["pie start date"]) &
         (df["Calendar Day"] <= header_data["pie end date"])
@@ -123,7 +123,7 @@ def get_proporsi_sales_region(df, header_data) :
 
 def get_proporsi_sales_kota(df, header_data) :
     data = df.loc[
-        (df["Material Name"].isin(header_data["selected bbm"])) &
+        (df["Material Name"].isin(header_data["selected type"])) &
         (df["Sales District"] == header_data["pie selected kota"]) &
         (df["Calendar Day"] >= header_data["pie start date"]) &
         (df["Calendar Day"] <= header_data["pie end date"])
@@ -136,7 +136,7 @@ def get_proporsi_sales_kota(df, header_data) :
 def get_total_pencapaian_keseluruhan(df, header_data) :
     data = {}
 
-    for material in header_data["selected bbm"] :
+    for material in header_data["selected type"] :
         data[material] = df.loc[
             (df["Calendar Day"] >= header_data["start date"]) &
             (df["Calendar Day"] <= header_data["end date"]) &
@@ -148,7 +148,7 @@ def get_total_pencapaian_keseluruhan(df, header_data) :
 def get_total_pencapaian_region(df, header_data) :
     data = {}
 
-    for material in header_data["selected bbm"] :
+    for material in header_data["selected type"] :
         data[material] = df.loc[
             (df["Calendar Day"] >= header_data["start date"]) &
             (df["Calendar Day"] <= header_data["end date"]) &
@@ -161,7 +161,7 @@ def get_total_pencapaian_region(df, header_data) :
 def get_total_pencapaian_kota(df, header_data) :
     data = {}
 
-    for material in header_data["selected bbm"] :
+    for material in header_data["selected type"] :
         data[material] = df.loc[
             df
         ]
@@ -169,7 +169,7 @@ def get_total_pencapaian_kota(df, header_data) :
 def get_rata_rata_keselurhan(df, header_data):
     # Filter data berdasarkan material yang dipilih dan rentang tanggal
     data = df.loc[
-        (df["Material Name"].isin(header_data["selected bbm"])) &
+        (df["Material Name"].isin(header_data["selected type"])) &
         (df["Calendar Day"] >= header_data["start date"]) &
         (df["Calendar Day"] <= header_data["end date"])
     ]
@@ -202,7 +202,7 @@ def get_rata_rata_keselurhan(df, header_data):
 def get_rata_rata_region(df, header_data) :
     # Filter data berdasarkan material yang dipilih dan rentang tanggal
     data = df.loc[
-        (df["Material Name"].isin(header_data["selected bbm"])) &
+        (df["Material Name"].isin(header_data["selected type"])) &
         (df["Region"] == header_data["selected region"]) &
         (df["Calendar Day"] >= header_data["start date"]) &
         (df["Calendar Day"] <= header_data["end date"])
@@ -237,7 +237,7 @@ def get_rata_rata_region(df, header_data) :
 def get_rata_rata_kota(df, header_data) :
     # Filter data berdasarkan material yang dipilih dan rentang tanggal
     data = df.loc[
-        (df["Material Name"].isin(header_data["selected bbm"])) &
+        (df["Material Name"].isin(header_data["selected type"])) &
         (df["Sales District"].isin(header_data["selected kota"])) &
         (df["Calendar Day"] >= header_data["start date"]) &
         (df["Calendar Day"] <= header_data["end date"])
@@ -274,6 +274,39 @@ def get_rata_rata_kota(df, header_data) :
 @st.cache_data
 def read_data_lpg(uploaded_file) :
     df = pd.read_excel(uploaded_file, sheet_name="target", skiprows=4)
-    df.columns = list(df.columns.values[:-8]) + ["Material Code", "Material Name", "Billing Quantity", "Harga Faktur", "Hasil Penjualan", "Margin", "PBBKB", "Net Value"]
+    df.columns = list(df.columns.values[:-8]) + ["Material Code", "Material Name", "Billing Quantity (MT)", "Harga Faktur (Rp)", "Hasil Penjualan (Rp)", "Margin (Rp)", "PBBKB (Rp)", "Net Value (Rp)"]
     
+    df[["Billing Quantity (KL)","Harga Faktur (Rp)", "Hasil Penjualan (Rp)", "Margin (Rp)", "PBBKB (Rp)", "Net Value (Rp)"]] = df[["Billing Quantity (MT)", "Harga Faktur (Rp)", "Hasil Penjualan (Rp)", "Margin (Rp)", "PBBKB (Rp)", "Net Value (Rp)"]].fillna(0)
+    df = df.dropna(subset=[
+        "Calendar Day",
+        "Region",
+        "Sales District",
+        "SH Name",
+        "Material Name",
+        "Material Code"
+    ])
+
+    lpg_names ={
+        "LPG MIXED,BULK" : "BULK",
+        "TABUNG LPG\xa0 BARU @50KG BAJA" : "LPG NPSO 50 KG",
+        "TABUNG LPG\xa0 BARU @3KG BAJA" : "LPG PSO 3 KG",
+        "REFILL/ISI LPG @3KG (NET)" : "LPG PSO 3 KG",
+        "TABUNG BARU BRIGHT GAS @5.5 KG" : "LPG NPSO 5,5 KG",
+        "TABUNG + ISI BRIGHT GAS @12KG BAJA" : "LPG NPSO 12 KG",
+        "TABUNG BRIGHT GAS BARU @12KG BAJA" : "LPG NPSO 12 KG",
+        "LPG BRIGHT GAS 5.5KG (NET)" : "LPG NPSO 5,5 KG",
+        "REFILL/ISI LPG @12KG (NET)" : "LPG NPSO 12 KG",
+        "TABUNG + ISI LPG @3KG BAJA" : "LPG PSO 3 KG",
+        "TABUNG + ISI LPG @50KG BAJA" : "LPG NPSO 50 KG",
+        "BRIGHT GAS, CAN @220GR" : "BG Can",
+        "TABUNG + ISI LPG @12KG BAJA" : "LPG NPSO 12 KG",
+        "TABUNG LPG\xa0 BARU @12KG BAJA" : "LPG NPSO 12 KG",
+        "TABUNG + ISI BRIGHT GAS @5.5KG BAJA" : "LPG NPSO 5,5 KG",
+        "REFILL/ISI LPG @50KG (NET)" : "LPG NPSO 50 KG",
+    }
+    
+    df["Material Name"] = df["Material Name"].replace(lpg_names)
+
+    df["Margin (Rp)"] = abs(df["Margin (Rp)"])
+
     return df

@@ -17,7 +17,7 @@ def header_keseluruhan(df) :
             max_value = date(2030, 12, 31), # Nilai maksimum yang dapat diinput
         )
 
-        # Mengubah tipe data dari pandas dataframe
+        # Mengubah tipe data ke pandas DateTime
         header_data["start date"] = to_datetime(header_data["start date"])
 
         # Input tanggal akhir
@@ -28,7 +28,7 @@ def header_keseluruhan(df) :
             max_value = date(2030, 12, 31)
         )
 
-        # Mengubah tipe data dari pandas dataframe
+        # Mengubah tipe data ke pandas DateTime
         header_data["end date"] = to_datetime(header_data["end date"])
 
     with col1_2 :
@@ -56,13 +56,13 @@ def header_keseluruhan(df) :
 
         with col1_2_2 :
             if header_data["selected material"] == "Gasoline" :
-                header_data["selected bbm"] = st.multiselect(
+                header_data["selected type"] = st.multiselect(
                     "Pilih Jenis BBM",
                     ["PERTALITE", "PERTAMAX", "PERTAMAX TURBO"]
                 )
 
             elif header_data["selected material"] == "Gasoil" :
-                header_data["selected bbm"] = st.multiselect(
+                header_data["selected type"] = st.multiselect(
                     "Pilih Jenis BBM",
                     ["BIOSOLAR", "DEXLITE", "PERTAMINA DEX"]
                 )
@@ -117,13 +117,13 @@ def header_region(df) :
 
         with col1_2_2 :
             if header_data["selected material"] == "Gasoline" :
-                header_data["selected bbm"] = st.multiselect(
+                header_data["selected type"] = st.multiselect(
                     "Pilih Jenis BBM",
                     ["PERTALITE", "PERTAMAX", "PERTAMAX TURBO"]
                 )
 
             elif header_data["selected material"] == "Gasoil" :
-                header_data["selected bbm"] = st.multiselect(
+                header_data["selected type"] = st.multiselect(
                     "Pilih Jenis BBM",
                     ["BIOSOLAR", "DEXLITE", "PERTAMINA DEX"]
                 )
@@ -236,13 +236,13 @@ def header_kota(df) :
 
     with col2_2 :
         if header_data["selected material"] == "Gasoline" :
-            header_data["selected bbm"] = st.multiselect(
+            header_data["selected type"] = st.multiselect(
                 "Pilih Jenis BBM",
                 ["PERTALITE", "PERTAMAX", "PERTAMAX TURBO"]
             )
 
         elif header_data["selected material"] == "Gasoil" :
-            header_data["selected bbm"] = st.multiselect(
+            header_data["selected type"] = st.multiselect(
                 "Pilih Jenis BBM",
                 ["BIOSOLAR", "DEXLITE", "PERTAMINA DEX"]
             )

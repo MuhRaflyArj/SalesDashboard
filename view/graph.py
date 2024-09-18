@@ -42,25 +42,34 @@ def barchart_proporsi(df, header_data):
     total_volumes = df_pivot.sum(axis=1)
     max_total_volume = total_volumes.max()  # Mendapatkan nilai maksimum total volume
 
+   # Menghitung total volume per material (sum across all time periods)
+    total_per_material = df_pivot.sum(axis=0).sort_values(ascending=False)
+
+    # Mengambil material names dalam urutan dari terbesar ke terkecil
+    sorted_materials = total_per_material.index.tolist()
+
     # Membuat bar untuk setiap kategori dalam stacked bar dengan proporsi %
     traces = []
-    for material in materials:
+    for material in sorted_materials:  # Loop melalui materials yang sudah diurutkan
         volumes = df_pivot[material].tolist()
         # Menghitung persentase kontribusi untuk setiap periode waktu
         percentages = (df_pivot[material] / total_volumes * 100).tolist()
         # Membuat label teks dengan persentase
         text_labels = [f'{p:.1f}%' if p > 0 else '' for p in percentages]
-        # Menentukan posisi teks berdasarkan persentase
-        text_positions = ['outside' if p > 25 else 'outside' for p in percentages]
-        # Menentukan warna teks agar kontras dengan warna batang
-        text_colors = ['white' if p > 25 else 'black' for p in percentages]
+        
+        # Menentukan posisi teks agar selalu berada di tengah batang (inside)
+        text_positions = 'inside'
+        # Menentukan warna teks
+        text_colors = ['white' for _ in percentages]  # Use a single color for consistency
+        
+        # Membuat trace dengan teks berada di tengah
         traces.append(go.Bar(
             name=material,
             x=formatted_labels,
             y=volumes,
             text=text_labels,
-            textposition=text_positions,
-            textfont=dict(color=text_colors, size=16),
+            textposition=text_positions,  # Posisi teks selalu di tengah
+            textfont=dict(color=text_colors, size=16),  # Ukuran font tetap
             hovertemplate='<b>%{x}</b><br>%{customdata}<br>Volume: %{y}<br>Persentase: %{text}',
             customdata=[material]*len(volumes)
         ))
@@ -69,14 +78,17 @@ def barchart_proporsi(df, header_data):
     fig = go.Figure(data=traces)
 
     # Menentukan judul plot berdasarkan frekuensi agregasi
-    if header_data["aggregate"] == 'W':
-        title = f'Penjualan Mingguan {header_data["selected material"]} Berdasarkan Nilai {header_data["selected value"]}'
-    elif header_data["aggregate"] == 'M':
-        title = f'Penjualan Bulanan {header_data["selected material"]} Berdasarkan Nilai {header_data["selected value"]}'
-    elif header_data["aggregate"] == 'Y':
-        title = f'Penjualan Tahunan {header_data["selected material"]} Berdasarkan Nilai {header_data["selected value"]}'
-    else:
-        title = 'Penjualan Gasoline'
+    if "selected material" in header_data.keys() :
+        if header_data["aggregate"] == 'W':
+            title = f'Penjualan Mingguan {header_data["selected material"]} Berdasarkan Nilai {header_data["selected value"]}'
+        elif header_data["aggregate"] == 'M':
+            title = f'Penjualan Bulanan {header_data["selected material"]} Berdasarkan Nilai {header_data["selected value"]}'
+        elif header_data["aggregate"] == 'Y':
+            title = f'Penjualan Tahunan {header_data["selected material"]} Berdasarkan Nilai {header_data["selected value"]}'
+        else:
+            title = 'Penjualan Gasoline'
+    else :
+        title = "Penjualan LPG"
 
     # Menambahkan informasi pada plot
     fig.update_layout(
@@ -131,7 +143,7 @@ def piechart_proporsi(df, header_data, category=""):
         annot = dict (
             text=f"{start_date} - {end_date}",
             x=0.5,
-            y=1.2,
+            y=-0.05,
             font_size=14,
             showarrow=False,
             xanchor='center',
@@ -144,7 +156,7 @@ def piechart_proporsi(df, header_data, category=""):
         annot_1 = dict (
             text=f"{start_date} - {end_date}",
             x=0.5,
-            y=1.13,
+            y=-0.05,
             font_size=14,
             showarrow=False,
             xanchor='center',
@@ -169,7 +181,7 @@ def piechart_proporsi(df, header_data, category=""):
         annot_1 = dict (
             text=f"{start_date} - {end_date}",
             x=0.5,
-            y=1.13,
+            y=-0.05,
             font_size=14,
             showarrow=False,
             xanchor='center',

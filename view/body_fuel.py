@@ -20,10 +20,10 @@ def body_keseluruhan(df, header_data) :
        # Initialize an empty table or with some default values
         df_realisasi ={
             "Material": data_realisasi.keys(),
-            "Target": [0.0 for i in range(len(header_data["selected bbm"]))],
-            "Target YTD": [0.0 for i in range(len(header_data["selected bbm"]))],
+            "Target": [0.0 for i in range(len(header_data["selected type"]))],
+            "Target YTD": [0.0 for i in range(len(header_data["selected type"]))],
             "Real YTD": data_realisasi.values(),
-            "%": [0.0 for i in range(len(header_data["selected bbm"]))],
+            "%": [0.0 for i in range(len(header_data["selected type"]))],
         }
 
         df_realisasi = pd.DataFrame(df_realisasi)
@@ -138,10 +138,10 @@ def body_region(df, header_data) :
        # Initialize an empty table or with some default values
         df_realisasi ={
             "Material": data_realisasi.keys(),
-            "Target": [0.0 for i in range(len(header_data["selected bbm"]))],
-            "Target YTD": [0.0 for i in range(len(header_data["selected bbm"]))],
+            "Target": [0.0 for i in range(len(header_data["selected type"]))],
+            "Target YTD": [0.0 for i in range(len(header_data["selected type"]))],
             "Real YTD": data_realisasi.values(),
-            "%": [0.0 for i in range(len(header_data["selected bbm"]))],
+            "%": [0.0 for i in range(len(header_data["selected type"]))],
         }
 
         df_realisasi = pd.DataFrame(df_realisasi)
@@ -264,10 +264,10 @@ def body_kota(df, header_data) :
        # Initialize an empty table or with some default values
         df_realisasi ={
             "Material": data_realisasi.keys(),
-            "Target": [0.0 for i in range(len(header_data["selected bbm"]))],
-            "Target YTD": [0.0 for i in range(len(header_data["selected bbm"]))],
+            "Target": [0.0 for i in range(len(header_data["selected type"]))],
+            "Target YTD": [0.0 for i in range(len(header_data["selected type"]))],
             "Real YTD": data_realisasi.values(),
-            "%": [0.0 for i in range(len(header_data["selected bbm"]))],
+            "%": [0.0 for i in range(len(header_data["selected type"]))],
         }
 
         df_realisasi = pd.DataFrame(df_realisasi)
