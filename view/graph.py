@@ -1,6 +1,7 @@
 import plotly.graph_objects as go
 import plotly.express as px
 import pandas as pd
+import view.style as style
 
 def barchart_proporsi(df, header_data):
     # Pivot dataframe untuk mendapatkan 'Material Name' sebagai kolom
@@ -13,7 +14,6 @@ def barchart_proporsi(df, header_data):
 
     # Mengambil labels (Calendar Day) dan materials (Material Name)
     labels = df_pivot.index.tolist()
-    materials = df_pivot.columns.tolist()
 
     # Memproses labels sesuai dengan frekuensi agregasi
     formatted_labels = []
@@ -70,6 +70,7 @@ def barchart_proporsi(df, header_data):
             text=text_labels,
             textposition=text_positions,  # Posisi teks selalu di tengah
             textfont=dict(color=text_colors, size=16),  # Ukuran font tetap
+            marker_color=style.color(material),
             hovertemplate='<b>%{x}</b><br>%{customdata}<br>Volume: %{y}<br>Persentase: %{text}',
             customdata=[material]*len(volumes)
         ))
@@ -134,7 +135,8 @@ def piechart_proporsi(df, header_data, category=""):
         labels=labels, 
         values=values, 
         hole=0.7,  # Membuat piechart berongga di tengah
-        domain=dict(x=[0.05, 0.95], y=[0, 1])  # Mengatur domain agar piechart berada di tengah dan lebih besar
+        domain=dict(x=[0.05, 0.95], y=[0, 1]),  # Mengatur domain agar piechart berada di tengah dan lebih besar
+        marker=dict(colors=[style.color(label) for label in labels])
     ))
 
     annotations = []
@@ -272,7 +274,7 @@ def linechart_rerata(df, header_data):
             x=formatted_labels,
             y=rerata_harian,
             mode='lines+markers+text',  # Menambahkan teks di titik plot
-            line=dict(dash='solid'),
+            line=dict(dash='solid', color=style.color(material)),
             hovertemplate='%{y:.2f}',  # Format hover sesuai permintaan
             text=[f'{y:.2f}' for y in rerata_harian],  # Menampilkan nilai pada setiap titik
             textposition='top center',  # Posisi teks pada titik

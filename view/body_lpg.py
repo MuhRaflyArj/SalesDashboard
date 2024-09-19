@@ -75,13 +75,13 @@ def body_keseluruhan(df, header_data) :
 
         with col1_1 :
             header_data["pie start date"] = st.date_input(
-                "Masukkan tanggal awal",
+                "Masukkan tanggal awal   ",
                 value=header_data["start date"]
             )
             header_data["pie start date"] = pd.to_datetime(header_data["pie start date"])
 
             header_data["pie end date"] = st.date_input(
-                "Masukkan tanggal akhir",
+                "Masukkan tanggal akhir   ",
                 value=header_data["end date"]
             )
             header_data["pie end date"] = pd.to_datetime(header_data["pie end date"])
@@ -96,13 +96,13 @@ def body_keseluruhan(df, header_data) :
         
         with col1_2 :
             header_data["pie start date"] = st.date_input(
-                "Masukkan tanggal awal ",
+                "Masukkan tanggal awal  ",
                 value=header_data["start date"]
             )
             header_data["pie start date"] = pd.to_datetime(header_data["pie start date"])
 
             header_data["pie end date"] = st.date_input(
-                "Masukkan tanggal akhir ",
+                "Masukkan tanggal akhir  ",
                 value=header_data["end date"]
             )
             header_data["pie end date"] = pd.to_datetime(header_data["pie end date"])
@@ -316,13 +316,13 @@ def body_kota(df, header_data) :
 
         with col1_1 :
             header_data["pie start date"] = st.date_input(
-                "Masukkan tanggal awal",
+                "Masukkan tanggal awal ",
                 value=header_data["start date"]
             )
             header_data["pie start date"] = pd.to_datetime(header_data["pie start date"])
 
             header_data["pie end date"] = st.date_input(
-                "Masukkan tanggal akhir",
+                "Masukkan tanggal akhir ",
                 value=header_data["end date"]
             )
             header_data["pie end date"] = pd.to_datetime(header_data["pie end date"])
@@ -342,13 +342,13 @@ def body_kota(df, header_data) :
         
     with col1_2 :
         header_data["pie start date"] = st.date_input(
-            "Masukkan tanggal awal ",
+            "Masukkan tanggal awal  ",
             value=header_data["start date"]
         )
         header_data["pie start date"] = pd.to_datetime(header_data["pie start date"])
 
         header_data["pie end date"] = st.date_input(
-            "Masukkan tanggal akhir ",
+            "Masukkan tanggal akhir  ",
             value=header_data["end date"]
         )
         header_data["pie end date"] = pd.to_datetime(header_data["pie end date"])

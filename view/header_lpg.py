@@ -11,7 +11,7 @@ def header_keseluruhan(df) :
     with col1_1 :
         # Input tanggal awal
         header_data["start date"] = st.date_input(
-            "Pilih Tanggal Awal",
+            "Pilih Tanggal Awal ",
             value=date.today(), # Default value hari ini
             min_value = date(2000, 1, 1), # Nilai minimum yang dapat diinput
             max_value = date(2030, 12, 31), # Nilai maksimum yang dapat diinput
@@ -22,7 +22,7 @@ def header_keseluruhan(df) :
 
         # Input tanggal akhir
         header_data["end date"] = st.date_input(
-            "Pilih Tanggal Akhir",
+            "Pilih Tanggal Akhir ",
             value=date.today(),
             min_value = date(2000, 1, 1),
             max_value = date(2030, 12, 31)
@@ -52,7 +52,7 @@ def header_keseluruhan(df) :
 
         with col1_2_2 :
             header_data["aggregate"] = st.selectbox(
-                "Pilih Agregasi Data",
+                "Pilih Agregasi Data ",
                 ["Mingguan", "Bulanan", "Tahunan"]
             )
 
