@@ -2,342 +2,417 @@ import streamlit as st
 import view.header_lpg as header
 import model.data as data
 import view.graph as graph
+import view.style as style
+import pandas as pd
 
-# Body jenis visualisasi data per-SH
-def body_sh(df) :
-    # Mengambil data yang diperlukan header dari DataFrame
-    list_region, dict_sh, dict_product = data.get_header_data_sh(df)
-    # Menampilkan header dan mengembalikan data yang dipilih oleh user pada header
-    header_data = header.header_sh(list_region, dict_sh, dict_product)
-    
-    st.divider() # Garis pemisah antara header dan visualisasi
+def body_keseluruhan(df, header_data) :
+    proportion_data = data.get_proporsi_produk_keseluruhan(df, header_data)
 
-    # Mengambil data tren penjualan berdasarkan sh 
-    # dan nilai yang dipilih dengan aggregate tertentu
-    sales_data = data.get_sales_data_sh(
-        df,
-        header_data["selected sh"],
-        header_data["selected value"],
-        header_data["start date"],
-        header_data["end date"],
-        header_data["aggregate"]
-    )
+    barchart_proporsi = graph.barchart_proporsi(proportion_data, header_data)
+    st.plotly_chart(barchart_proporsi, use_container_width=True)
 
-    # Mengambil data perbandingan PSO 
-    # (key = jenis produk (PSO/standar), value = total nilai)
-    pso_data = data.get_total_pso_sh(
-        df,
-        header_data["selected sh"],
-        header_data["selected value"],
-        header_data["start date"],
-        header_data["end date"]
-    )
+    st.divider()
 
-    # Mengambil dictionary total nilai (key = product, value = total)
-    total_sales_dict = data.get_total_sales_sh(
-        df,
-        header_data["selected sh"],
-        header_data["selected product"],
-        header_data["selected value"],
-        header_data["start date"],
-        header_data["end date"],
-    )
+    col1, col2 = st.columns([3, 5])
 
-    # ========================= #
-    # 2 kolom pada baris pertama untuk menampung total nilai dan grafik tren
-    col1_1, col1_2 = st.columns([1,4])
+    with col1:
+        data_realisasi = data.get_total_pencapaian_keseluruhan(df, header_data)
+        # Initialize an empty table or with some default values
+        df_realisasi ={
+            "Material": data_realisasi.keys(),
+            "Target": [0.0 for i in range(len(header_data["selected type"]))],
+            "Target YTD": [0.0 for i in range(len(header_data["selected type"]))],
+            "Real YTD": data_realisasi.values(),
+            "%": [0.0 for i in range(len(header_data["selected type"]))],
+        }
 
-    # Isi kolom untuk total nilai
-    with col1_1 :
-        st.write(" "); st.write(" ") # Tambah 2 baris kosong
-        # Judul pada kolom total nilai
-        st.write(f"**Total Nilai {header_data['selected value']}**")
+        df_realisasi = pd.DataFrame(df_realisasi)
+
+        with st.expander("Input Data Target") :
+            # Display editable table for "Target" and "Target YTD" input
+            input_realisasi = st.data_editor(df_realisasi[["Material", "Target", "Target YTD"]], num_rows="static", use_container_width=True)
         
-        st.divider() # Garis pemisah
+        df_realisasi["Target"] = input_realisasi["Target"]
+        df_realisasi["Target YTD"] = input_realisasi["Target YTD"]
+        df_realisasi["%"] = (df_realisasi["Real YTD"] / input_realisasi["Target YTD"]) * 100
 
-        # 2 Kolom pada total nilai untuk nama produk dan total nilai
-        col1_1_1, col1_1_2 = st.columns([2, 1])
+        # Apply icons to the percentage column
+        df_realisasi["%"] = df_realisasi["%"].apply(lambda x: style.status_icon(x))
 
-        # Menulis nama produk pada kolom pertama
-        with col1_1_1 :
-            st.write("**Produk**") # Nama kolom
-            for produk in total_sales_dict.keys() :
-                st.write(produk)
+        total_row = {
+            "Material": "Total",
+            "Target": df_realisasi["Target"].sum(),
+            "Target YTD": df_realisasi["Target YTD"].sum(),
+            "Real YTD": df_realisasi["Real YTD"].sum(),
+            "%": style.status_icon(df_realisasi["%"].apply(lambda x: float(x.split()[1][:-1].replace(",", ""))).mean())  # Average of percentage values
+        }
 
-        # Menulis total nilai dari suatu produk pada kolom kedua
-        with col1_1_2 :
-            st.write("**Total**") # Nama kolom
-            for total in total_sales_dict.values() :
-                st.write("{:,.0f}".format(total))
+        # Create a DataFrame for the total row
+        total_row_df = pd.DataFrame([total_row])
 
-    # Isi kolom untuk grafik tren penjualan suatu produk pada SH tertentu
+        # Concatenate the total row to the original DataFrame
+        df_realisasi = pd.concat([df_realisasi, total_row_df], ignore_index=True)
+
+        df_realisasi.reset_index(drop=True, inplace=True)
+
+        # Format numbers as currency and percentages
+        df_styled = df_realisasi.style.format({
+            "Target": "{:,.2f}",
+            "Target YTD": "{:,.0f}",
+            "Real YTD": "{:,.2f}",
+        }).apply(style.highlight_total_row, axis=1)  # Hide the index
+        
+        # Define the style for table elements
+        df_styled = df_styled.set_properties(**{
+            'text-align': 'center', 'font-weight': 'bold', 'border': '1px solid black'
+        })
+        
+        # Display the DataFrame using Streamlit
+        st.dataframe(df_styled, use_container_width=True, hide_index=True)
+
+        header_data["selected type target"] = st.selectbox(
+            "Produk Yang Ditampilkan",
+            ["Keseluruhan"] + header_data["selected type"]
+        )
+
+        if header_data["selected type target"] == "Keseluruhan" :
+            header_data["selected type target"] = header_data["selected type"]
+        else :
+            header_data["selected type target"] = [header_data["selected type target"]]
+
+
+        df_barchart = df_realisasi.loc[df_realisasi["Material"].isin(header_data["selected type target"])]
+        barchart_target = graph.grouped_barchart_target(df_barchart, header_data)
+        st.plotly_chart(barchart_target, use_container_width=True)
+
+    with col2 :
+        col1_1, _, col1_2 = st.columns([7,1,7])
+
+        with col1_1 :
+            header_data["pie start date"] = st.date_input(
+                "Masukkan tanggal awal   ",
+                value=header_data["start date"]
+            )
+            header_data["pie start date"] = pd.to_datetime(header_data["pie start date"])
+
+            header_data["pie end date"] = st.date_input(
+                "Masukkan tanggal akhir   ",
+                value=header_data["end date"]
+            )
+            header_data["pie end date"] = pd.to_datetime(header_data["pie end date"])
+
+            pie_data_left = data.get_proporsi_sales_keseluruhan(
+                df,
+                header_data,
+            )
+            piechart_proporsi_left = graph.piechart_proporsi(pie_data_left.sum(), header_data, category="keseluruhan")
+
+            st.plotly_chart(piechart_proporsi_left, use_container_width=True)
+        
+        with col1_2 :
+            header_data["pie start date"] = st.date_input(
+                "Masukkan tanggal awal  ",
+                value=header_data["start date"]
+            )
+            header_data["pie start date"] = pd.to_datetime(header_data["pie start date"])
+
+            header_data["pie end date"] = st.date_input(
+                "Masukkan tanggal akhir  ",
+                value=header_data["end date"]
+            )
+            header_data["pie end date"] = pd.to_datetime(header_data["pie end date"])
+
+            pie_data_right = data.get_proporsi_sales_keseluruhan(
+                df, 
+                header_data,
+            )
+            piechart_proporsi_right = graph.piechart_proporsi(pie_data_right.sum(), header_data, "keseluruhan")
+
+            st.plotly_chart(piechart_proporsi_right, use_container_width=True)
+
+    st.divider()
+
+    data_rerata = data.get_rata_rata_keselurhan(df, header_data)
+    linechart_rerata = graph.linechart_rerata(data_rerata, header_data)
+    st.plotly_chart(linechart_rerata, use_container_width=True)
+
+def body_region(df, header_data) :
+    proportion_data = data.get_proporsi_produk_region(df, header_data)
+
+    barchart_proporsi = graph.barchart_proporsi(proportion_data, header_data)
+    st.plotly_chart(barchart_proporsi, use_container_width=True)
+
+    st.divider()
+
+    col1, col2 = st.columns([3, 5])
+
+    with col1 :
+        data_realisasi = data.get_total_pencapaian_keseluruhan(df, header_data)
+        # Initialize an empty table or with some default values
+        df_realisasi ={
+            "Material": data_realisasi.keys(),
+            "Target": [0.0 for i in range(len(header_data["selected type"]))],
+            "Target YTD": [0.0 for i in range(len(header_data["selected type"]))],
+            "Real YTD": data_realisasi.values(),
+            "%": [0.0 for i in range(len(header_data["selected type"]))],
+        }
+
+        df_realisasi = pd.DataFrame(df_realisasi)
+
+        with st.expander("Input Data Target") :
+            # Display editable table for "Target" and "Target YTD" input
+            input_realisasi = st.data_editor(df_realisasi[["Material", "Target", "Target YTD"]], num_rows="static", use_container_width=True)
+        
+        df_realisasi["Target"] = input_realisasi["Target"]
+        df_realisasi["Target YTD"] = input_realisasi["Target YTD"]
+        df_realisasi["%"] = (df_realisasi["Real YTD"] / input_realisasi["Target YTD"]) * 100
+
+        # Apply icons to the percentage column
+        df_realisasi["%"] = df_realisasi["%"].apply(lambda x: style.status_icon(x))
+
+        total_row = {
+            "Material": "Total",
+            "Target": df_realisasi["Target"].sum(),
+            "Target YTD": df_realisasi["Target YTD"].sum(),
+            "Real YTD": df_realisasi["Real YTD"].sum(),
+            "%": style.status_icon(df_realisasi["%"].apply(lambda x: float(x.split()[1][:-1].replace(",", ""))).mean())  # Average of percentage values
+        }
+
+        # Create a DataFrame for the total row
+        total_row_df = pd.DataFrame([total_row])
+
+        # Concatenate the total row to the original DataFrame
+        df_realisasi = pd.concat([df_realisasi, total_row_df], ignore_index=True)
+
+        df_realisasi.reset_index(drop=True, inplace=True)
+
+        # Format numbers as currency and percentages
+        df_styled = df_realisasi.style.format({
+            "Target": "{:,.2f}",
+            "Target YTD": "{:,.0f}",
+            "Real YTD": "{:,.2f}",
+        }).apply(style.highlight_total_row, axis=1)  # Hide the index
+        
+        # Define the style for table elements
+        df_styled = df_styled.set_properties(**{
+            'text-align': 'center', 'font-weight': 'bold', 'border': '1px solid black'
+        })
+        
+        # Display the DataFrame using Streamlit
+        st.dataframe(df_styled, use_container_width=True, hide_index=True)
+
+        header_data["selected type target"] = st.selectbox(
+            "Produk Yang Ditampilkan",
+            ["Keseluruhan"] + header_data["selected type"]
+        )
+
+        if header_data["selected type target"] == "Keseluruhan" :
+            header_data["selected type target"] = header_data["selected type"]
+        else :
+            header_data["selected type target"] = [header_data["selected type target"]]
+
+
+        df_barchart = df_realisasi.loc[df_realisasi["Material"].isin(header_data["selected type target"])]
+        barchart_target = graph.grouped_barchart_target(df_barchart, header_data)
+        st.plotly_chart(barchart_target, use_container_width=True)
+
+    with col2 :
+        col1_1, _, col1_2 = st.columns([7,1,7])
+
+        with col1_1 :
+            header_data["pie start date"] = st.date_input(
+                "Masukkan tanggal awal",
+                value=header_data["start date"]
+            )
+            header_data["pie start date"] = pd.to_datetime(header_data["pie start date"])
+
+            header_data["pie end date"] = st.date_input(
+                "Masukkan tanggal akhir",
+                value=header_data["end date"]
+            )
+            header_data["pie end date"] = pd.to_datetime(header_data["pie end date"])
+            
+            header_data["pie selected region"] = st.selectbox(
+                "Pilih Region ",
+                data.get_list_region(df),
+            )
+
+            pie_data_left = data.get_proporsi_sales_region(
+                df,
+                header_data,
+            )
+            piechart_proporsi_left = graph.piechart_proporsi(pie_data_left.sum(), header_data, category="region")
+
+            st.plotly_chart(piechart_proporsi_left, use_container_width=True)
+        
+        with col1_2 :
+            header_data["pie start date"] = st.date_input(
+                "Masukkan tanggal awal ",
+                value=header_data["start date"]
+            )
+            header_data["pie start date"] = pd.to_datetime(header_data["pie start date"])
+
+            header_data["pie end date"] = st.date_input(
+                "Masukkan tanggal akhir ",
+                value=header_data["end date"]
+            )
+            header_data["pie end date"] = pd.to_datetime(header_data["pie end date"])
+
+            header_data["pie selected region"] = st.selectbox(
+                "Pilih Region  ",
+                data.get_list_region(df),
+            )
+
+            pie_data_right = data.get_proporsi_sales_region(
+                df, 
+                header_data,
+            )
+            piechart_proporsi_right = graph.piechart_proporsi(pie_data_right.sum(), header_data, "region")
+
+            st.plotly_chart(piechart_proporsi_right, use_container_width=True)
+
+    st.divider()
+
+    data_rerata = data.get_rata_rata_region(df, header_data)
+    linechart_rerata = graph.linechart_rerata(data_rerata, header_data)
+    st.plotly_chart(linechart_rerata, use_container_width=True)
+
+def body_kota(df, header_data) :
+    proportion_data = data.get_proporsi_produk_kota(df, header_data)
+    barchart_proporsi = graph.barchart_proporsi(proportion_data, header_data)
+    st.plotly_chart(barchart_proporsi, use_container_width=True)
+
+    st.divider()
+
+    col1, col2 = st.columns([3,5])
+
+    with col1 :
+        data_realisasi = data.get_total_pencapaian_keseluruhan(df, header_data)
+       # Initialize an empty table or with some default values
+        df_realisasi ={
+            "Material": data_realisasi.keys(),
+            "Target": [0.0 for i in range(len(header_data["selected type"]))],
+            "Target YTD": [0.0 for i in range(len(header_data["selected type"]))],
+            "Real YTD": data_realisasi.values(),
+            "%": [0.0 for i in range(len(header_data["selected type"]))],
+        }
+
+        df_realisasi = pd.DataFrame(df_realisasi)
+
+        with st.expander("Input Data Target") :
+            # Display editable table for "Target" and "Target YTD" input
+            input_realisasi = st.data_editor(df_realisasi[["Material", "Target", "Target YTD"]], num_rows="static", use_container_width=True)
+        
+        df_realisasi["Target"] = input_realisasi["Target"]
+        df_realisasi["Target YTD"] = input_realisasi["Target YTD"]
+        df_realisasi["%"] = (df_realisasi["Real YTD"] / input_realisasi["Target YTD"]) * 100
+
+        # Apply icons to the percentage column
+        df_realisasi["%"] = df_realisasi["%"].apply(lambda x: style.status_icon(x))
+
+        total_row = {
+            "Material": "Total",
+            "Target": df_realisasi["Target"].sum(),
+            "Target YTD": df_realisasi["Target YTD"].sum(),
+            "Real YTD": df_realisasi["Real YTD"].sum(),
+            "%": style.status_icon(df_realisasi["%"].apply(lambda x: float(x.split()[1][:-1].replace(",", ""))).mean())  # Average of percentage values
+        }
+
+        # Create a DataFrame for the total row
+        total_row_df = pd.DataFrame([total_row])
+
+        # Concatenate the total row to the original DataFrame
+        df_realisasi = pd.concat([df_realisasi, total_row_df], ignore_index=True)
+
+        df_realisasi.reset_index(drop=True, inplace=True)
+
+        # Format numbers as currency and percentages
+        df_styled = df_realisasi.style.format({
+            "Target": "{:,.2f}",
+            "Target YTD": "{:,.0f}",
+            "Real YTD": "{:,.2f}",
+        }).apply(style.highlight_total_row, axis=1)  # Hide the index
+        
+        # Define the style for table elements
+        df_styled = df_styled.set_properties(**{
+            'text-align': 'center', 'font-weight': 'bold', 'border': '1px solid black'
+        })
+        
+        # Display the DataFrame using Streamlit
+        st.dataframe(df_styled, use_container_width=True, hide_index=True)
+
+        header_data["selected type target"] = st.selectbox(
+            "Produk Yang Ditampilkan",
+            ["Keseluruhan"] + header_data["selected type"]
+        )
+
+        if header_data["selected type target"] == "Keseluruhan" :
+            header_data["selected type target"] = header_data["selected type"]
+        else :
+            header_data["selected type target"] = [header_data["selected type target"]]
+
+
+        df_barchart = df_realisasi.loc[df_realisasi["Material"].isin(header_data["selected type target"])]
+        barchart_target = graph.grouped_barchart_target(df_barchart, header_data)
+        st.plotly_chart(barchart_target, use_container_width=True)
+
+    with col2 :
+        col1_1, _, col1_2 = st.columns([7,1,7])
+
+        with col1_1 :
+            header_data["pie start date"] = st.date_input(
+                "Masukkan tanggal awal ",
+                value=header_data["start date"]
+            )
+            header_data["pie start date"] = pd.to_datetime(header_data["pie start date"])
+
+            header_data["pie end date"] = st.date_input(
+                "Masukkan tanggal akhir ",
+                value=header_data["end date"]
+            )
+            header_data["pie end date"] = pd.to_datetime(header_data["pie end date"])
+            
+            header_data["pie selected kota"] = st.selectbox(
+                "Pilih Kabupaten/Kota ",
+                data.get_list_kota(df),
+            )
+
+            pie_data_left = data.get_proporsi_sales_kota(
+                df,
+                header_data,
+            )
+            piechart_proporsi_left = graph.piechart_proporsi(pie_data_left.sum(), header_data, category="kota")
+
+            st.plotly_chart(piechart_proporsi_left, use_container_width=True)
+        
     with col1_2 :
-        # Buat chart tren penjualan antar produk
-        fig_sales_linechart = graph.sales_chart_sh(
-            sales_data, 
-            header_data["selected product"], 
-            header_data["selected value"]
+        header_data["pie start date"] = st.date_input(
+            "Masukkan tanggal awal  ",
+            value=header_data["start date"]
         )
-        # Tampilkan chart tren penjualan pada streamlit
-        st.plotly_chart(fig_sales_linechart, use_column_width=True)
+        header_data["pie start date"] = pd.to_datetime(header_data["pie start date"])
 
-    # ========================= #
-    # 3 Kolom pada baris kedua untuk menampung rasio penjualan produk perbandingan PSO dan standar, 
-    # dan perbandingan setiap produk
-    col2_1, col2_2, col2_3 = st.columns([3,2,5])
-
-    # Isi kolom untuk rasio penjualan
-    with col2_1 :
-        # Buat piechart rasio penjualan
-        sales_piechart = graph.sales_piechart(total_sales_dict, header_data["selected value"])
-        # Tampilkan piechart rasio penjualan pada streamlit
-        st.plotly_chart(sales_piechart, use_column_width=True)
-
-    # Isi kolom untuk perbandingan penjualan PSO dan standar
-    with col2_2 :
-        # Buat barchart untuk perbandingan penjualan PSO dan standar
-        pso_barchart = graph.sales_barchart(pso_data, header_data["selected value"], f"Perbandingan {header_data['selected value']} PSO dan Standar")
-        # Tampilkan barchart perbandingan PSO pada streamlit
-        st.plotly_chart(pso_barchart, use_column_width=True)
-
-    # Isi kolom untuk perbandingan penjualan setiap produk
-    with col2_3 :
-        # Buat barchart untuk perbandingan penjualan setiap produk
-        sales_barchart = graph.sales_barchart(total_sales_dict, header_data["selected value"], f"Perbandingan {header_data['selected value']} Setiap Produk")
-        # Tampilkan barchart perbandingan penjualan pada streamlit
-        st.plotly_chart(sales_barchart, use_column_width=True)
-
-# Body jenis visualisasi data per-region
-def body_region(df) :
-    # Mengambil data yang diperlukan header dari DataFrame
-    list_region, dict_product = data.get_header_data_region(df)
-    # Menampilkan header dan mengembalikan data yang dipilih oleh user pada header
-    header_data = header.header_region(list_region, dict_product)
-
-    st.divider() # Garis pemisah antara header dan visualisasi
-
-    # Mengambil data sales berdasarkan region, produk dan nilai yang dipilih
-    sales_data = data.get_sum_region(
-        df,
-        header_data["selected region"],
-        header_data["selected product"],
-        header_data["selected value"],
-        header_data["start date"],
-        header_data["end date"]
-    )
-
-    # Mengambil data untuk perbandingan penjualan dari sales_data 
-    # (key = region, value = nilai total penjualan)
-    pie_data = {
-        region : round(sum(value.values())) for region, value in sales_data.items()
-    }
-
-    # Mengambil data untuk perbandingan penjualan produk PSO dan Standar dari region yang dipilih
-    pso_data = data.get_total_pso_region(
-        df,
-        header_data["selected region"],
-        header_data["selected value"],
-        header_data["start date"],
-        header_data["end date"]
-    )
-
-    # Mengambil data untuk menampilkan tren penjualan region yang dipilih (filtered DataFrame)
-    timed_sales_data = data.get_sales_data_region(
-        df,
-        header_data["selected region"],
-        header_data["selected product"],
-        header_data["selected value"],
-        header_data["start date"],
-        header_data["end date"],
-        header_data["aggregate"]
-    )
-
-    # ========================= #
-    # 2 kolom pada baris pertama untuk menampung total nilai
-    # dan perbandingan penjualan setiap produk pada beberapa region
-    col1_1, col1_2 = st.columns([1,3])
-
-    # Isi kolom untuk total nilai
-    with col1_1 :
-        st.write(" "); st.write(" ") # Tambah 2 baris kosong
-        # Judul pada kolom total nilai
-        st.write(f"**Total Nilai {header_data['selected value']}**")
-        
-        st.divider() # Garis pemisah
-
-        # 2 Kolom pada total nilai untuk nama produk dan total nilai
-        col1_1_1, col1_1_2 = st.columns([3,2])
-        
-        # Menulis judul kolom untuk total nilai
-        with col1_1_1 :
-            st.write("**Kabupaten/Kota**")
-        with col1_1_2 :
-            st.write(header_data["selected value"])
-
-        # Menulis nama region dan total penjualan
-        for region, value in sales_data.items() :
-            with col1_1_1 :
-                st.write(region) # Menulis nama setiap region
-            with col1_1_2 :
-                # Menulis total penjualan dari region tertentu
-                st.write("{:,.0f}".format(round(sum(value.values()))))
-
-    # Isi kolom untuk grafik tren penjualan setiap produk pada region tertentu
-    with col1_2 :
-        # Buat grouped barchart untuk menampilkan penjualan setiap produk pada region tertentu
-        fig_sales_barchart = graph.sales_stacked_barchart(
-            sales_data, 
-            header_data["selected value"], 
-            f"Perbandingan {header_data['selected value']} Produk per Wilayah"
+        header_data["pie end date"] = st.date_input(
+            "Masukkan tanggal akhir  ",
+            value=header_data["end date"]
         )
-        # Menampilkan grouped barchart pada streamlit
-        st.plotly_chart(fig_sales_barchart, use_container_width=True)
+        header_data["pie end date"] = pd.to_datetime(header_data["pie end date"])
 
-    # ========================= #
-    # 3 kolom pada baris kedua untuk menampung rasio penjualan, 
-    # perbandingan penjualan PSO dan standar, dan tren penjualan
-    col2_1, col2_2, col2_3 = st.columns([3,2,5])
-
-    # Isi kolom untuk piechart rasio penjualan antar region
-    with col2_1 :
-        # Buat piechart rasio penjualan antar region
-        fig_sales_piechart = graph.sales_piechart(
-            pie_data, 
-            header_data["selected value"]
+        header_data["pie selected kota"] = st.selectbox(
+            "Pilih Kabupaten/Kota  ",
+            data.get_list_kota(df),
         )
-        # Tampilkan piechart rasio penjualan pada streamlit
-        st.plotly_chart(fig_sales_piechart, use_container_width=True)
-    
-    # Isi kolom untuk perbandingan penjualan produk PSO dan standar
-    with col2_2 :
-        # Buat barchart perbandingan penjualan produk PSO dan standar
-        fig_pso_barchart = graph.sales_barchart(
-            pso_data, 
-            header_data["selected value"], 
-            f"Perbandingan {header_data['selected value']} PSO dan Standar"
+
+        pie_data_right = data.get_proporsi_sales_kota(
+            df, 
+            header_data,
         )
-        # Tampilkan barchart perbandingan penjualan pada streamlit
-        st.plotly_chart(fig_pso_barchart, use_container_width=True)
+        piechart_proporsi_right = graph.piechart_proporsi(pie_data_right.sum(), header_data, "kota")
 
-    # Isi kolom untuk grafik tren penjualan antar region
-    with col2_3 :
-        # Buat chart tren penjualan antar region
-        fig_sales_linechart = graph.sales_chart_region(
-            timed_sales_data,
-            header_data["selected region"],
-            header_data["selected value"]
-        )
-        # Tampilkan chart tren penjualan pada streamlit
-        st.plotly_chart(fig_sales_linechart, use_container_width=True)
+        st.plotly_chart(piechart_proporsi_right, use_container_width=True)
 
-# Body jenis visualisasi data keseluruhan
-def body_keseluruhan(df) :
-    # Mengambil data yang diperlukan header dari DataFrame
-    list_product = data.get_product_keseluruhan(df)
-    # Menampilkan header dan mengembalikan data yang dipilih oleh user pada header
-    header_data = header.header_keseluruhan(list_product)
+    st.divider()
 
-    st.divider() # Garis pemisah antara header dan visualisasi
-
-    # Mengambil data tren penjualan keseluruhan berdasarkan produk yang dipilih
-    sales_data = data.get_sales_data_keseluruhan(
-        df,
-        header_data["selected product"],
-        header_data["selected value"],
-        header_data["start date"],
-        header_data["end date"],
-        header_data["aggregate"]
-    )
-
-    # Mengambil data penjualan setiap produk (key = nama produk, value = total penjualan)
-    sales_numbers = data.get_sum_keseluruhan(
-        df,
-        header_data["selected product"],
-        header_data["selected value"],
-        header_data["start date"],
-        header_data["end date"]
-    )
-
-    # Mengambil data penjualan produk PSO dan standar 
-    # (key = jenis produk (PSO atau standar), value = total penjualan)
-    total_pso = data.get_total_pso_keseluruhan(
-        df,
-        header_data["selected value"],
-        header_data["start date"],
-        header_data["end date"]
-    )
-
-    # ========================= #
-    # Buat chart tren penjualan antar produk
-    fig_sales_linechart = graph.sales_chart_keseluruhan(
-        sales_data, 
-        header_data["selected product"], 
-        header_data["selected value"]
-    )
-    # Tampilkan chart tren penjualan antar produk pada streamlit
-    st.plotly_chart(fig_sales_linechart, use_container_width=True)
-
-    # ========================= #
-    # 2 kolom pada baris kedua untuk menampung chart perbandingan penjualan pso dan standar 
-    # dan perbandingan penjualan berdasarkan jenis produk
-    col2_1, col2_2 = st.columns([1,3])
-
-    # Isi kolom untuk perbandiangan penjualan produk PSO dan standar
-    with col2_1 :
-        # Buat barchart untuk perbandingan penjualan produk PSO dan standar
-        fig_pso_barchart = graph.sales_barchart(
-            total_pso, header_data["selected value"], 
-            f"Perbandingan {header_data['selected value']} PSO dan Standar"
-        )
-        # Tampilkan barchart pada streamlit
-        st.plotly_chart(fig_pso_barchart, use_container_width=True)
-
-    # Isi kolom untuk perbandingan penjualan antar produk yang dipilih
-    with col2_2 :
-        # Buat barchart untuk perbandingan penjualan antar produk
-        fig_sales_barchart = graph.sales_barchart(sales_numbers, 
-            header_data["selected value"], 
-            f"Perbandingan {header_data['selected value']} Berdasarkan Jenis Produk"
-        )
-        # Tampilkan barchart pada streamlit
-        st.plotly_chart(fig_sales_barchart, use_container_width=True)
-
-    # ========================= #
-    # 2 kolom pada baris ketiga untuk menampung chart perbandingan penjualan antar produk 
-    # dan total nilai penjualan
-    col3_1, col3_2 = st.columns([3,7])
-
-    # Isi kolom untuk rasio penjualan
-    with col3_1 :
-        # Buat piechart rasio penjualan
-        fig_sales_piechart = graph.sales_piechart(
-            sales_numbers, 
-            header_data["selected value"]
-        )
-        # Tampilkan piechart rasio penjualan pada streamlit
-        st.plotly_chart(fig_sales_piechart, use_container_width=True)
-
-    # Isi kolom untuk total nilai penjualan setiap produk
-    with col3_2 :
-        st.write(" "); st.write(" ") # Tambah 2 baris kosong
-        # Judul pada kolom total nilai
-        st.write(f"**Total Nilai {header_data['selected value']}**")
-
-        st.divider() # Garis pemisah
-
-        # 2 Kolom pada total nilai untuk nama produk dan total nilai
-        col3_2_1, col3_2_2 = st.columns([1,2])
-        
-        # Menulis nama kolom
-        with col3_2_1 :
-            st.write("**Produk**")  
-        with col3_2_2 :
-            st.write(f"**{header_data['selected value']}**")
-
-        # Menulis nama produk dan total penjualan
-        for product, value in sales_numbers.items() :
-            with col3_2_1 :
-                st.write(product) # Menulis nama setiap produk
-            with col3_2_2 :
-                # Menulis total penjualan dari produk tertentu
-                st.write("{:,.0f}".format(round(value)))
+    data_rerata = data.get_rata_rata_kota(df, header_data)
+    linechart_rerata = graph.linechart_rerata(data_rerata, header_data)
+    st.plotly_chart(linechart_rerata, use_container_width=True)

@@ -2,8 +2,10 @@ import streamlit as st
 import model.data as data
 import view.body_fuel as body_fuel
 import view.body_lpg as body_lpg
+import view.header_fuel as header_fuel
+import view.header_lpg as header_lpg
 import view.dropdown as dropdown
-import view.graph as graph
+
 
 # Configurasi ukuran halaman
 st.set_page_config(layout="wide")
@@ -11,47 +13,75 @@ st.set_page_config(layout="wide")
 # Judul utama
 st.title("Dashboard Penjualan SAM Bandung")
 
-# Dropdown untuk upload file dan 
-with st.expander("Upload Data Sales") :
-    data_type, uploaded_file = dropdown.upload_dropdown()
+tab_profile, tab_fuel, tab_lpg = st.tabs(["Profil Bisnis", "Fuel Sales", "Gas Sales"])
 
-# Tampilan body muncul saat sudah terdapat file yang diupload
-if uploaded_file != None :
 
-    # Tampilan untuk dashboard fuel
-    if data_type == "Data Fuel" :
-        # Baca data excel yang diupload
-        df = data.read_data_fuel(uploaded_file)
+with tab_fuel :
+    with st.expander("Panduan") :
+            st.write("Panduan")
 
-        # Pilihan jenis visualisasi
-        header_option = st.selectbox(
-            "Pilih Visualisasi",
-            ["Per-SPBU", "Per-Region", "Keseluruhan"]
+    fuel_data = st.file_uploader("Pastikan nama sheet adalah `target`", type="xlsx")
+
+    if fuel_data != None :
+        fuel_df = data.read_data_fuel(fuel_data)
+
+        with st.expander("Preview Data") :
+            dropdown.preview_data_fuel(fuel_df)
+
+        st.divider()
+
+        visualization_type = st.selectbox(
+            "Pilih jenis visualisasi",
+            ["Keseluruhan Data", "Per-Region", "Per-Kabupaten/Kota"]
         )
 
-        # Menampilkan tampilan sesuai jenis visualisasi
-        if header_option == "Per-SPBU" :
-            body_fuel.body_spbu(df)
-        elif header_option == "Per-Region" :
-            body_fuel.body_region(df)
-        elif header_option == "Keseluruhan" :
-            body_fuel.body_keseluruhan(df)
+        if visualization_type == "Keseluruhan Data" :
+            header_data = header_fuel.header_keseluruhan(fuel_df)
+        elif visualization_type == "Per-Region" :
+            header_data = header_fuel.header_region(fuel_df)
+        elif visualization_type == "Per-Kabupaten/Kota" :
+            header_data = header_fuel.header_kota(fuel_df)
 
-    # Tampilan untuk dashboard LPG
-    elif data_type == "Data LPG" :
-        # Baca data excel yang diupload
-        df = data.read_data_lpg(uploaded_file)
-        
-        # Pilihan jenis visualisasi
-        header_option = st.selectbox(
-            "Pilih Visualisasi",
-            ["Per-SH", "Per-Region", "Keseluruhan"]
-        )
+        st.divider()
 
-        # Menampilkan tampilan sesuai jenis visualisasi
-        if header_option == "Per-SH" :
-            body_lpg.body_sh(df)
-        elif header_option == "Per-Region" :
-            body_lpg.body_region(df)
-        elif header_option == "Keseluruhan" :
-            body_lpg.body_keseluruhan(df)
+        if visualization_type == "Keseluruhan Data" :
+            body_fuel.body_keseluruhan(fuel_df, header_data)
+        elif visualization_type == "Per-Region" :
+            body_fuel.body_region(fuel_df, header_data)
+        elif visualization_type == "Per-Kabupaten/Kota" :
+            body_fuel.body_kota(fuel_df, header_data)
+
+    with tab_lpg :
+        with st.expander("Panduan") :
+            st.write("Panduan")
+
+        lpg_data = st.file_uploader("Pastikan nama sheet adalah `target` ", type="xlsx")  
+
+        if lpg_data != None :
+            lpg_df = data.read_data_lpg(lpg_data)
+
+            with st.expander("Preview Data ") :
+                dropdown.preview_data_lpg(lpg_df)
+
+            st.divider()
+
+            visualization_type = st.selectbox(
+                "Pilih jenis visualisasi ",
+                ["Keseluruhan Data", "Per-Region", "Per-Kabupaten/Kota"]
+            )
+
+            if visualization_type == "Keseluruhan Data" :
+                header_data = header_lpg.header_keseluruhan(lpg_df)
+            elif visualization_type == "Per-Region" :
+                header_data = header_lpg.header_region(lpg_df)
+            elif visualization_type == "Per-Kabupaten/Kota" :
+                header_data = header_lpg.header_kota(lpg_df)
+
+            st.divider()
+
+            if visualization_type == "Keseluruhan Data" :
+                body_lpg.body_keseluruhan(lpg_df, header_data)
+            elif visualization_type == "Per-Region" :
+                body_lpg.body_region(lpg_df, header_data)
+            elif visualization_type == "Per-Kabupaten/Kota" :
+                body_lpg.body_kota(lpg_df, header_data)
