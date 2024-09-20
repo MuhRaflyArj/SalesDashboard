@@ -13,7 +13,7 @@ def body_keseluruhan(df, header_data) :
     
     st.divider()
     
-    col1, col2 = st.columns([3,5])
+    col1, col2 = st.columns([4,5])
 
     with col1 :
         data_realisasi = data.get_total_pencapaian_keseluruhan(df, header_data)
@@ -70,8 +70,23 @@ def body_keseluruhan(df, header_data) :
         # Display the DataFrame using Streamlit
         st.dataframe(df_styled, use_container_width=True, hide_index=True)
 
+        header_data["selected type target"] = st.selectbox(
+            "Produk Yang Ditampilkan",
+            ["Keseluruhan"] + header_data["selected type"]
+        )
+
+        if header_data["selected type target"] == "Keseluruhan" :
+            header_data["selected type target"] = header_data["selected type"]
+        else :
+            header_data["selected type target"] = [header_data["selected type target"]]
+
+
+        df_barchart = df_realisasi.loc[df_realisasi["Material"].isin(header_data["selected type target"])]
+        barchart_target = graph.grouped_barchart_target(df_barchart, header_data)
+        st.plotly_chart(barchart_target, use_container_width=True)
+
     with col2 :
-        col1_1, _, col1_2 = st.columns([7,1,7])
+        col1_1, col1_2 = st.columns(2)
 
         with col1_1 :
             header_data["pie start date"] = st.date_input(
@@ -119,7 +134,7 @@ def body_keseluruhan(df, header_data) :
 
     data_rerata = data.get_rata_rata_keselurhan(df, header_data)
     linechart_rerata = graph.linechart_rerata(data_rerata, header_data)
-    st.plotly_chart(linechart_rerata, use_column_width=True)
+    st.plotly_chart(linechart_rerata, use_container_width=True)
     
 
 
@@ -187,6 +202,21 @@ def body_region(df, header_data) :
         
         # Display the DataFrame using Streamlit
         st.dataframe(df_styled, use_container_width=True, hide_index=True)
+
+        header_data["selected type target"] = st.selectbox(
+            "Produk Yang Ditampilkan",
+            ["Keseluruhan"] + header_data["selected type"]
+        )
+
+        if header_data["selected type target"] == "Keseluruhan" :
+            header_data["selected type target"] = header_data["selected type"]
+        else :
+            header_data["selected type target"] = [header_data["selected type target"]]
+
+
+        df_barchart = df_realisasi.loc[df_realisasi["Material"].isin(header_data["selected type target"])]
+        barchart_target = graph.grouped_barchart_target(df_barchart, header_data)
+        st.plotly_chart(barchart_target, use_container_width=True)
 
     with col2 :
         col1_1, _, col1_2 = st.columns([7,1,7])
@@ -313,6 +343,21 @@ def body_kota(df, header_data) :
         
         # Display the DataFrame using Streamlit
         st.dataframe(df_styled, use_container_width=True, hide_index=True)
+
+        header_data["selected type target"] = st.selectbox(
+            "Produk Yang Ditampilkan",
+            ["Keseluruhan"] + header_data["selected type"]
+        )
+
+        if header_data["selected type target"] == "Keseluruhan" :
+            header_data["selected type target"] = header_data["selected type"]
+        else :
+            header_data["selected type target"] = [header_data["selected type target"]]
+
+
+        df_barchart = df_realisasi.loc[df_realisasi["Material"].isin(header_data["selected type target"])]
+        barchart_target = graph.grouped_barchart_target(df_barchart, header_data)
+        st.plotly_chart(barchart_target, use_container_width=True)
 
     with col2 :
         col1_1, _, col1_2 = st.columns([7,1,7])

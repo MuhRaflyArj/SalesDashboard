@@ -58,7 +58,7 @@ def header_keseluruhan(df) :
             if header_data["selected material"] == "Gasoline" :
                 header_data["selected type"] = st.multiselect(
                     "Pilih Jenis BBM",
-                    ["PERTALITE", "PERTAMAX", "PERTAMAX TURBO"]
+                    ["PERTALITE", "PERTAMAX", "PERTAMAX TURBO", "PERTAMAX GREEN"]
                 )
 
             elif header_data["selected material"] == "Gasoil" :
@@ -119,7 +119,7 @@ def header_region(df) :
             if header_data["selected material"] == "Gasoline" :
                 header_data["selected type"] = st.multiselect(
                     "Pilih Jenis BBM",
-                    ["PERTALITE", "PERTAMAX", "PERTAMAX TURBO"]
+                    ["PERTALITE", "PERTAMAX", "PERTAMAX TURBO", "PERTAMAX GREEN"]
                 )
 
             elif header_data["selected material"] == "Gasoil" :
@@ -238,7 +238,7 @@ def header_kota(df) :
         if header_data["selected material"] == "Gasoline" :
             header_data["selected type"] = st.multiselect(
                 "Pilih Jenis BBM",
-                ["PERTALITE", "PERTAMAX", "PERTAMAX TURBO"]
+                ["PERTALITE", "PERTAMAX", "PERTAMAX TURBO", "PERTAMAX GREEN"]
             )
 
         elif header_data["selected material"] == "Gasoil" :

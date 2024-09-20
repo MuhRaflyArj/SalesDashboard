@@ -292,7 +292,7 @@ def linechart_rerata(df, header_data):
         hovertemplate='Total: %{y:.2f}',  # Hover untuk total
         text=[f'{y:.2f}' for y in total_rerata],  # Menampilkan nilai total pada setiap titik
         textposition='top center',  # Posisi teks pada titik total
-        customdata=['Total']*len(total_rerata)
+        customdata=['Total']*len(total_rerata),
     ))
 
     # Inisialisasi figure dengan menambahkan line chart dari data yang disimpan
@@ -303,8 +303,46 @@ def linechart_rerata(df, header_data):
         title='Line Chart Rerata Penjualan Produk',
         xaxis_title='Periode',
         yaxis_title=header_data["selected value"],
-        legend_title='Jenis BBM',
+        height=600,
+        legend=dict(
+            orientation="h",  # Horizontal orientation for the legend
+            yanchor="middle",  # Aligns legend at the bottom of the y position
+            y=-0.2,  # Slightly above the chart (1 is top of the chart)
+            xanchor="center",  # Center horizontally
+            x=0.5  # Center the legend
+        ),
         hovermode='x unified'
+    )
+
+    return fig
+
+def grouped_barchart_target(df, header_data):
+    fig = go.Figure()
+
+    # Create bars for Target, Target YTD, and Real YTD
+    for col_name in ["Target", "Target YTD", "Real YTD"]:
+        fig.add_trace(go.Bar(
+            x=df["Material"],
+            y=df[col_name],
+            name=col_name,
+            text=df[col_name],  # Add text above bars
+            textposition="auto"  # Text position
+        ))
+
+    # Update layout for the figure
+    fig.update_layout(
+        barmode="group",
+        title=f"Sales Performance {header_data['selected material']}",
+        xaxis_title="Produk",
+        yaxis_title=header_data["selected value"],
+        legend=dict(
+            orientation="h",  # Horizontal orientation for the legend
+            yanchor="bottom",  # Aligns legend at the bottom of the y position
+            y=1,  # Slightly above the chart (1 is top of the chart)
+            xanchor="center",  # Center horizontally
+            x=0.5  # Center the legend
+        ),
+        height=400  # Set height of the figure
     )
 
     return fig
